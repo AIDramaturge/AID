@@ -76,10 +76,17 @@ input_type = st.radio(
     horizontal=True
 )
 
-if input_type == "Storyboard or Script (text)":
-    st.session_state.user_text = st.text_area("Paste your storyboard or script here:", height=300, key="text_input")
+if input_type == "Script or Storyboard (Text)":
+    st.markdown("### ✍️ Paste or upload your script or storyboard")
+    st.session_state.user_text = st.text_area("Paste your script or storyboard here:", height=300, key="text_input")
 
-elif input_type == "Storyboard (PDF)":
+    uploaded_txt = st.file_uploader("Or upload a .txt file:", type=["txt"])
+    if uploaded_txt is not None:
+        uploaded_text = uploaded_txt.read().decode("utf-8")
+        st.session_state.user_text = uploaded_text.strip()
+
+elif input_type == "Storyboard (PDF - Image + Text)":
+    st.markdown("### 📄 Upload your PDF storyboard")
     uploaded_pdf = st.file_uploader("Upload a PDF file:", type=["pdf"])
     if uploaded_pdf is not None:
         pdf_text = ""
@@ -87,8 +94,10 @@ elif input_type == "Storyboard (PDF)":
             for page in doc:
                 pdf_text += page.get_text()
         st.session_state.user_text = pdf_text.strip()
+        st.text_area("Extracted Text:", value=pdf_text.strip(), height=300)
 
-elif input_type == "Storyboard (image)":
+elif input_type == "Storyboard (Image)":
+    st.markdown("### 🖼️ Upload image(s) of your storyboard")
     uploaded_files = st.file_uploader("Upload storyboard image(s):", type=["png", "jpg", "jpeg"], accept_multiple_files=True)
     ocr_text = ""
     for uploaded_file in uploaded_files:
@@ -97,6 +106,8 @@ elif input_type == "Storyboard (image)":
             extracted_text = pytesseract.image_to_string(image)
             ocr_text += f"\n--- From {uploaded_file.name} ---\n" + extracted_text
     st.session_state.user_text = ocr_text.strip()
+    if ocr_text:
+        st.text_area("Extracted Text:", value=ocr_text.strip(), height=300)
 
 elif input_type == "TV spot (video)":
     uploaded_video = st.file_uploader("Upload a TV spot (MP4, MOV, etc.):", type=["mp4", "mov"])
@@ -114,7 +125,7 @@ elif input_type == "TV spot (video)":
             ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
             model = whisper.load_model("base")
-            st.info("🎙️ Transcribing audio...")
+            st.info("🎹 Transcribing audio...")
             result = model.transcribe(audio_path)
             transcript = result["text"].strip()
 
@@ -176,11 +187,13 @@ if st.button("Analyze"):
 
 # COPY BUTTON
 copy_button = """
-<button onclick=\"navigator.clipboard.writeText(document.getElementById('analysis_copy').value)\">📋 Copy Analysis</button>
-<textarea id='analysis_copy' style='display:none;'>{}</textarea>
-""".format(st.session_state.get("analysis_output", ""))
+    <button onclick="navigator.clipboard.writeText(document.getElementById('analysis_copy').value)">
+        Copy Analysis
+    </button>
+    <textarea id='analysis_copy' style='display:none;'>{}</textarea>
+""".format(st.session_state.get("analysis_output", "").replace("</", "<\\/"))  # bezpečné uzatvorenie
 
-st.markdown(copy_button, unsafe_allow_html=True)
+st.components.v1.html(copy_button, height=50)
 
 # CLEAR BUTTON
 if st.button("❌ Clear All"):
