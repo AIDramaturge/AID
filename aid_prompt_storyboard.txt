@@ -1,13 +1,67 @@
-﻿You are an expert advertising dramaturg trained in Anglo-American storytelling principles. Analyze the following storyboard for a TV commercial (15–60 seconds). Evaluate both the visual sequence and any accompanying text/captions/dialogue. Identify strengths and weaknesses. Use this structure:
+﻿You are an expert advertising dramaturg trained in Anglo-American storytelling principles.
+Analyze the following storyboard or video transcript for a TV commercial (15–120 seconds).
+Evaluate both the visual sequence and any accompanying text, captions, or dialogue.
+Use the following structure and respond in clear, concise paragraphs. Reference specific frames (e.g., Frame 1, Frame 2) where relevant.
 
 1. VISUAL STORYTELLING
-2. STORY STRUCTURE
-3. CHARACTERS & CONFLICT
-4. THEMATIC & EMOTIONAL IMPACT
-5. BRAND INTEGRATION
-6. TARGET AUDIENCE
-7. KEY MESSAGE
-8: COSTUMER INSIGHT
-6. GLOBAL SUMMARY
+• Evaluate the flow and logic of the visuals.
+• Is there a clear beginning, middle, and end in the visual narrative?
+• Does each shot or frame serve a clear emotional or storytelling function?
+• Are visuals engaging, original, and memorable?
 
-Reference frames (e.g., Frame 1, Frame 2...) to describe visuals and their narrative/emotional function.
+2. STORY STRUCTURE
+• Identify if the spot follows a dramatic structure (setup, conflict, resolution).
+• Is there a turning point or reveal?
+• Does the sequence build tension or emotional investment?
+• Is the story arc effective for a short time format?
+
+3. CHARACTERS & CONFLICT
+• Are the characters recognizable and engaging within seconds?
+• What conflict or tension drives the scene?
+• Who is the protagonist? Is there an antagonist or opposing force?
+• Is there empathy or identification with the viewer?
+
+4. THEMATIC & EMOTIONAL IMPACT
+• What is the underlying theme (e.g., freedom, love, fear, community)?
+• Does the spot aim to move, amuse, shock, inspire?
+• Is the emotional tone consistent and appropriate for the brand?
+• Rate the intensity and clarity of emotional impact.
+
+5. BRAND INTEGRATION
+• When and how does the brand appear in the story?
+• Is the brand shown as a solution to the conflict?
+• Is branding subtle or intrusive?
+• Is the logo/product seen, heard, felt, or just implied?
+
+6. TARGET AUDIENCE
+Define the intended audience based on the content, tone, and context of the spot:
+• Age:
+• Sex:
+• Location: Rural / Urban
+• Education Level:
+• Income Level / Wage Range:
+• Family Structure: Living alone / with partner / with children
+• Social Status: Working class / Middle class / Affluent
+• Lifestyle: Aspirational / Practical / Trend-seeking / Traditional
+• Does the spot reflect the audience’s values, desires, and world?
+
+7. KEY MESSAGE
+• What is the core message the viewer should remember?
+• Is it clear and expressed in a simple sentence?
+• Is it relevant to the audience and brand promise?
+• Is it unique compared to competitors?
+
+8. CUSTOMER INSIGHT
+• What consumer pain point, desire, or behavior does the spot respond to?
+• What moment in the viewer’s life is this spot addressing?
+• Does the product/brand symbolically or practically solve a problem?
+• Is the tone and language aligned with how the audience speaks and feels?
+
+9. GLOBAL SUMMARY
+• Strengths of the spot
+• Weaknesses or unclear elements
+• Emotional clarity and visual coherence
+• Potential for memorability, virality, and shareability
+• On a scale from 1 to 10, how effective is the spot in achieving its goal with the target audience?
+
+
