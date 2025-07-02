@@ -3,37 +3,51 @@ Analyze the following storyboard or video transcript for a TV commercial (15–1
 Evaluate both the visual sequence and any accompanying text, captions, or dialogue.
 Use the following structure and respond in clear, concise paragraphs. Reference specific frames (e.g., Frame 1, Frame 2) where relevant.
 
-1. VISUAL STORYTELLING
+1. ORIGINALITY & CREATIVE EXECUTION
+Concept Innovation:
+Evaluate whether the core idea or concept behind the commercial is original, fresh, or derivative. Does it offer a unique perspective or introduce a new narrative angle within its category or genre (e.g., technology, family, finance, social cause)? Does the concept stand out among competitors or feel familiar and expected?
+Treatment & Execution:
+Assess how creatively the idea is translated into the visual and narrative structure. Are metaphors or symbols used in a surprising or meaningful way? Are the visuals imaginative or formulaic? Is the storytelling technique (e.g., point of view, time structure, symbolism) inventive and coherent?
+Genre Subversion or Reinforcement:
+Determine whether the commercial follows conventional genre patterns (e.g., heroic arc, emotional reveal) or subverts expectations in an effective way. Does it rely on clichés or challenge typical advertising tropes?
+Tone & Style Distinction:
+Analyze whether the tone (humorous, epic, sentimental, surreal, etc.) and stylistic choices (color palette, pacing, music, shot composition) enhance the originality of the piece. Are these choices consistent with the intended audience and message?
+Cultural or Contextual Relevance:
+Consider whether the creative approach is timely, culturally aware, or globally resonant. Does it draw on current trends, behaviors, or concerns in a thoughtful way? Is it likely to spark conversation or emotional response because of its originality?
+Evaluation Score:
+Give a score from 1 to 10 based on the originality of the concept and how distinctively it is executed, explaining the rationale behind the score.
+
+2. VISUAL STORYTELLING
 • Evaluate the flow and logic of the visuals.
 • Is there a clear beginning, middle, and end in the visual narrative?
 • Does each shot or frame serve a clear emotional or storytelling function?
 • Are visuals engaging, original, and memorable?
 
-2. STORY STRUCTURE
+3. STORY STRUCTURE
 • Identify if the spot follows a dramatic structure (setup, conflict, resolution).
 • Is there a turning point or reveal?
 • Does the sequence build tension or emotional investment?
 • Is the story arc effective for a short time format?
 
-3. CHARACTERS & CONFLICT
+4. CHARACTERS & CONFLICT
 • Are the characters recognizable and engaging within seconds?
 • What conflict or tension drives the scene?
 • Who is the protagonist? Is there an antagonist or opposing force?
 • Is there empathy or identification with the viewer?
 
-4. THEMATIC & EMOTIONAL IMPACT
+5. THEMATIC & EMOTIONAL IMPACT
 • What is the underlying theme (e.g., freedom, love, fear, community)?
 • Does the spot aim to move, amuse, shock, inspire?
 • Is the emotional tone consistent and appropriate for the brand?
 • Rate the intensity and clarity of emotional impact.
 
-5. BRAND INTEGRATION
+6. BRAND INTEGRATION
 • When and how does the brand appear in the story?
 • Is the brand shown as a solution to the conflict?
 • Is branding subtle or intrusive?
 • Is the logo/product seen, heard, felt, or just implied?
 
-6. TARGET AUDIENCE
+7. TARGET AUDIENCE
 Define the intended audience based on the content, tone, and context of the spot:
 • Age:
 • Sex:
@@ -45,19 +59,19 @@ Define the intended audience based on the content, tone, and context of the spot
 • Lifestyle: Aspirational / Practical / Trend-seeking / Traditional
 • Does the spot reflect the audience’s values, desires, and world?
 
-7. KEY MESSAGE
+8. KEY MESSAGE
 • What is the core message the viewer should remember?
 • Is it clear and expressed in a simple sentence?
 • Is it relevant to the audience and brand promise?
 • Is it unique compared to competitors?
 
-8. CUSTOMER INSIGHT
+9. CUSTOMER INSIGHT
 • What consumer pain point, desire, or behavior does the spot respond to?
 • What moment in the viewer’s life is this spot addressing?
 • Does the product/brand symbolically or practically solve a problem?
 • Is the tone and language aligned with how the audience speaks and feels?
 
-9. GLOBAL SUMMARY
+10. GLOBAL SUMMARY
 • Strengths of the spot
 • Weaknesses or unclear elements
 • Emotional clarity and visual coherence
