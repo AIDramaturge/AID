@@ -42,7 +42,7 @@ col1, col2 = st.columns([1, 4])
 with col1:
     st.image(logo, width=400)
 with col2:
-    st.markdown("<h1 style='padding-top: 0px;'>AI Dramaturgical Analysis Tool</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='padding-top: 0px;'>AID - Artificial Intelligence Dramaturge</h1>", unsafe_allow_html=True)
 
 st.set_page_config(page_title="AI Dramaturge", layout="wide")
 
@@ -71,7 +71,7 @@ def analyze_text(input_type, user_text):
 
 # Výber typu vstupu
 input_type = st.radio(
-    "What are you analyzing?",
+    "This is AI powered dramaturgical analysis tool. What are you analyzing?",
     ["Play", "Script or Storyboard (Text)", "Storyboard (Image)", "Storyboard (PDF - Image + Text)", "TV spot (video)"],
     horizontal=True
 )
