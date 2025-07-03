@@ -118,7 +118,7 @@ elif input_type == "TV spot (video)":
 
             # Extrakcia zvuku z videa
             audio_path = os.path.join(tmpdir, "audio.mp3")
-            ffmpeg_path = r"C:\\ffmpeg\\ffmpeg-7.1.1-essentials_build\\bin\\ffmpeg.exe"
+            ffmpeg_path = "ffmpeg"
             subprocess.run([
                 ffmpeg_path, "-i", video_path,
                 "-vn", "-ar", "44100", "-ac", "2", "-b:a", "192k", audio_path
