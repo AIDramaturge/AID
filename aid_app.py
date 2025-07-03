@@ -11,9 +11,7 @@ from dotenv import load_dotenv
 import fitz  # PyMuPDF
 import pytesseract
 import base64
-
-# Nastavenie cesty k ffmpeg
-os.environ["PATH"] += os.pathsep + r"C:\\ffmpeg\\ffmpeg-7.1.1-essentials_build\\bin"
+import imageio_ffmpeg
 
 # Načítanie .env premenných
 env_path = Path(".env")
@@ -118,7 +116,7 @@ elif input_type == "TV spot (video)":
 
             # Extrakcia zvuku z videa
             audio_path = os.path.join(tmpdir, "audio.mp3")
-            ffmpeg_path = "ffmpeg"
+            ffmpeg_path = imageio_ffmpeg.get_ffmpeg_exe()
             subprocess.run([
                 ffmpeg_path, "-i", video_path,
                 "-vn", "-ar", "44100", "-ac", "2", "-b:a", "192k", audio_path
@@ -210,4 +208,11 @@ if st.button("❌ Clear All"):
     st.session_state.user_text = ""
     st.session_state.analysis_output = ""
     st.session_state.video_processed = True
+    st.rerun()
+
+# RESET VIDEO BUTTON
+if input_type == "TV spot (video)" and st.button("♻️ Reset Video Processing"):
+    st.session_state.user_text = ""
+    st.session_state.analysis_output = ""
+    st.session_state.video_processed = False
     st.rerun()
