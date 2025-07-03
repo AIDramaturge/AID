@@ -50,7 +50,7 @@ storyboard_prompt = Path("aid_prompt_storyboard.txt").read_text(encoding="utf-8"
 def get_prompt(input_type: str, user_text: str) -> str:
     if input_type == "Play":
         return f"{play_prompt.strip()}\n\nTEXT:\n{user_text.strip()}"
-    elif input_type in ["Script or Storyboard (Text)", "Storyboard (Image)", "Storyboard (PDF - Image + Text)", "TV spot (video 15 120 sec)"]:
+    elif input_type in ["Script or Storyboard (Text)", "Storyboard (Image)", "Storyboard (PDF - Image + Text)", "TV Spot (Video 15 - 120 sec)"]:
         return f"{storyboard_prompt.strip()}\n\nTEXT:\n{user_text.strip()}"
 
 def analyze_text(input_type, user_text):
@@ -69,7 +69,7 @@ def analyze_text(input_type, user_text):
 # Výber typu vstupu
 input_type = st.radio(
     "This is AI powered dramaturgical analysis tool. What are you analyzing?",
-    ["Play", "Script or Storyboard (Text)", "Storyboard (Image)", "Storyboard (PDF - Image + Text)", "TV spot (video 15-120 sec)"],
+    ["Play", "Script or Storyboard (Text)", "Storyboard (Image)", "Storyboard (PDF - Image + Text)", "TV spot (video)"],
     horizontal=True
 )
 
@@ -106,7 +106,7 @@ elif input_type == "Storyboard (Image)":
     if ocr_text:
         st.text_area("Extracted Text:", value=ocr_text.strip(), height=300)
 
-elif input_type == "TV spot (video)":
+elif input_type == "TV Spot (Video 15 - 120 sec)":
     uploaded_video = st.file_uploader("Upload a TV spot (MP4, MOV, etc.):", type=["mp4", "mov"])
     if uploaded_video and not st.session_state.video_processed:
         with tempfile.TemporaryDirectory() as tmpdir:
