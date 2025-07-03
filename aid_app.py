@@ -165,6 +165,18 @@ elif input_type == "TV spot (video)":
 
             vidcap.release()
 
+                        # Zobrazenie extrahovaných obrázkov ešte počas trvania tmpdir
+            st.markdown("### 🖼️ Extracted Keyframes")
+            cols = st.columns(3)
+            col_idx = 0
+            for sec in range(0, int(duration), interval):
+                frame_file = os.path.join(frames_dir, f"frame_{sec}.jpg")
+                if os.path.exists(frame_file):
+                    image = Image.open(frame_file)
+                    with cols[col_idx % 3]:
+                        st.image(image, caption=f"Frame at {sec} sec", use_container_width=True)
+                    col_idx += 1
+
             # Spojenie prepisu zvuku a obrazovej analýzy
             full_script = ""
             for idx, desc in enumerate(visual_descriptions):
