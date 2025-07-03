@@ -1,4 +1,3 @@
-
 import os
 import subprocess
 import tempfile
@@ -14,7 +13,7 @@ import pytesseract
 import base64
 
 # Nastavenie cesty k ffmpeg
-os.environ["PATH"] += os.pathsep + r"C:\ffmpeg\ffmpeg-7.1.1-essentials_build\bin"
+os.environ["PATH"] += os.pathsep + r"C:\\ffmpeg\\ffmpeg-7.1.1-essentials_build\\bin"
 
 # Načítanie .env premenných
 env_path = Path(".env")
@@ -119,17 +118,20 @@ elif input_type == "TV spot (video)":
 
             # Extrakcia zvuku z videa
             audio_path = os.path.join(tmpdir, "audio.mp3")
-            ffmpeg_path = r"C:\ffmpeg\ffmpeg-7.1.1-essentials_build\bin\ffmpeg.exe"
+            ffmpeg_path = r"C:\\ffmpeg\\ffmpeg-7.1.1-essentials_build\\bin\\ffmpeg.exe"
             subprocess.run([
                 ffmpeg_path, "-i", video_path,
                 "-vn", "-ar", "44100", "-ac", "2", "-b:a", "192k", audio_path
             ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-            # Prepis zvuku pomocou OpenAI Whisper API
+            # Prepis zvuku pomocou OpenAI Whisper API (nové API)
             st.info("🎹 Transcribing audio with OpenAI API...")
             with open(audio_path, "rb") as audio_file:
-                transcript_response = openai.Audio.transcribe("whisper-1", audio_file)
-                transcript = transcript_response["text"].strip()
+                transcript_response = client.audio.transcriptions.create(
+                    model="whisper-1",
+                    file=audio_file
+                )
+                transcript = transcript_response.text.strip()
 
             # Extrakcia snímok z videa
             st.info("🖼️ Extracting keyframes from video...")
@@ -173,7 +175,12 @@ elif input_type == "TV spot (video)":
             full_script += f"\n[Transcripted Audio]\n{transcript}"
             st.session_state.user_text = full_script.strip()
             st.session_state.video_processed = True
-            st.success("✅ Script created. Ready for analysis.")
+            st.success("✅ Script created. Ready for analysis. Would you like to see/edit it?")
+if st.button("Show script"):
+    edited_script = st.text_area("Script Text (editable):", value=st.session_state.user_text, height=400, key="script_editor")
+    if st.button("Save Changes"):
+        st.session_state.user_text = edited_script
+        st.success("✅ Changes saved.")
 
 elif input_type == "Play":
     st.session_state.user_text = st.text_area("Paste your play text here:", height=300, key="text_input")
@@ -187,7 +194,7 @@ if st.button("Analyze"):
             result = analyze_text(input_type, st.session_state.user_text)
             st.session_state.analysis_output = result
             st.markdown("### 🔍 Analysis Result")
-            st.text_area("Analysis", value=result, height=400, key="analysis_output")
+            st.text_area("Analysis", value=result, height=400)
 
 # COPY BUTTON
 copy_button = f'''
@@ -202,5 +209,5 @@ st.components.v1.html(copy_button, height=50)
 if st.button("❌ Clear All"):
     st.session_state.user_text = ""
     st.session_state.analysis_output = ""
-    st.session_state.video_processed = False
-    st.experimental_rerun()
+    st.session_state.video_processed = True
+    st.rerun()
