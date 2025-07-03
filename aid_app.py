@@ -1,7 +1,7 @@
+
 import os
 import subprocess
 import tempfile
-import whisper
 import openai
 from pathlib import Path
 from PIL import Image
@@ -14,7 +14,7 @@ import pytesseract
 import base64
 
 # Nastavenie cesty k ffmpeg
-os.environ["PATH"] += os.pathsep + r"C:\\ffmpeg\\ffmpeg-7.1.1-essentials_build\\bin"
+os.environ["PATH"] += os.pathsep + r"C:\ffmpeg\ffmpeg-7.1.1-essentials_build\bin"
 
 # Načítanie .env premenných
 env_path = Path(".env")
@@ -117,24 +117,27 @@ elif input_type == "TV spot (video)":
             with open(video_path, "wb") as f:
                 f.write(uploaded_video.read())
 
-            audio_path = os.path.join(tmpdir, "audio.wav")
-            ffmpeg_path = r"C:\\ffmpeg\\ffmpeg-7.1.1-essentials_build\\bin\\ffmpeg.exe"
+            # Extrakcia zvuku z videa
+            audio_path = os.path.join(tmpdir, "audio.mp3")
+            ffmpeg_path = r"C:\ffmpeg\ffmpeg-7.1.1-essentials_build\bin\ffmpeg.exe"
             subprocess.run([
                 ffmpeg_path, "-i", video_path,
-                "-vn", "-acodec", "pcm_s16le", "-ar", "16000", "-ac", "1", audio_path
+                "-vn", "-ar", "44100", "-ac", "2", "-b:a", "192k", audio_path
             ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-            model = whisper.load_model("base")
-            st.info("🎹 Transcribing audio...")
-            result = model.transcribe(audio_path)
-            transcript = result["text"].strip()
+            # Prepis zvuku pomocou OpenAI Whisper API
+            st.info("🎹 Transcribing audio with OpenAI API...")
+            with open(audio_path, "rb") as audio_file:
+                transcript_response = openai.Audio.transcribe("whisper-1", audio_file)
+                transcript = transcript_response["text"].strip()
 
+            # Extrakcia snímok z videa
             st.info("🖼️ Extracting keyframes from video...")
             vidcap = cv2.VideoCapture(video_path)
             frame_count = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
             fps = vidcap.get(cv2.CAP_PROP_FPS)
             duration = frame_count / fps
-            interval = max(1, int(duration // 6))
+            interval = max(1, int(duration // 6))  # 6 záberov na celé video
 
             frames_dir = os.path.join(tmpdir, "frames")
             os.makedirs(frames_dir, exist_ok=True)
@@ -162,6 +165,7 @@ elif input_type == "TV spot (video)":
 
             vidcap.release()
 
+            # Spojenie prepisu zvuku a obrazovej analýzy
             full_script = ""
             for idx, desc in enumerate(visual_descriptions):
                 full_script += f"\nScene {idx + 1}:\n[Visual] {desc}\n"
@@ -186,13 +190,12 @@ if st.button("Analyze"):
             st.text_area("Analysis", value=result, height=400, key="analysis_output")
 
 # COPY BUTTON
-copy_button = """
+copy_button = f'''
     <button onclick="navigator.clipboard.writeText(document.getElementById('analysis_copy').value)">
         Copy Analysis
     </button>
-    <textarea id='analysis_copy' style='display:none;'>{}</textarea>
-""".format(st.session_state.get("analysis_output", "").replace("</", "<\\/"))  # bezpečné uzatvorenie
-
+    <textarea id='analysis_copy' style='display:none;'>{st.session_state.get("analysis_output", "").replace("</", "<\/")}</textarea>
+'''
 st.components.v1.html(copy_button, height=50)
 
 # CLEAR BUTTON
