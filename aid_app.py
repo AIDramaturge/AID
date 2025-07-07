@@ -132,12 +132,12 @@ elif input_type == "TV Spot (Video 15 - 150 sec)":
                 transcript = transcript_response.text.strip()
 
             # Extrakcia snímok z videa
-            st.info("🖼️ Extracting keyframes from video...")
+            st.info("🖼️ Extracting keyframes from video... I'm analyzing a keyframe every 3 seconds. It takes time. Sometime a lot of time.Stay cool.")
             vidcap = cv2.VideoCapture(video_path)
             frame_count = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
             fps = vidcap.get(cv2.CAP_PROP_FPS)
             duration = frame_count / fps
-            interval = 5  # každých 5 sekúnd
+            interval = 3  # každé 3 sekundy
 
             frames_dir = os.path.join(tmpdir, "frames")
             os.makedirs(frames_dir, exist_ok=True)
