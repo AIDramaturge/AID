@@ -4,6 +4,8 @@ Evaluate both the visual sequence and any accompanying text, captions, or dialog
 Analyze objectively, strictly, in detail, use a neutral tone. Avoid excessive praise. For each point, write down the errors you found and how to resolve them.
 Use the following structure and respond in clear, concise paragraphs. Reference specific frames (e.g., Frame 1, Frame 2) where relevant.
 
+If you have previously analyzed the same spot, forget all the results of your earlier analyses.
+
 1.	SYNOPSIS
 Write full symopsis of the storyboard or transcript of a tv commercial.
 
