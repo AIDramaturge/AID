@@ -132,7 +132,7 @@ elif input_type == "TV Spot (Video 10 - 150 sec)":
                 transcript = transcript_response.text.strip()
 
             # Extrakcia snímok z videa
-            st.info("🖼️ Extracting keyframes from video... I'm analyzing a keyframe every 3 seconds. It takes time. Sometimes a lot of time. Stay cool.")
+            st.info("🖼️ Extracting keyframes from video... I'm analyzing a keyframe every 1 second. It takes time. Sometimes a lot of time. Stay cool.")
             vidcap = cv2.VideoCapture(video_path)
             frame_count = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
             fps = vidcap.get(cv2.CAP_PROP_FPS)
