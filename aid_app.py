@@ -137,7 +137,7 @@ elif input_type == "TV Spot (Video 10 - 150 sec)":
             frame_count = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
             fps = vidcap.get(cv2.CAP_PROP_FPS)
             duration = frame_count / fps
-            interval = 3  # každé 3 sekundy
+            interval = 1  # každá 1 sekunda
 
             frames_dir = os.path.join(tmpdir, "frames")
             os.makedirs(frames_dir, exist_ok=True)
