@@ -50,7 +50,7 @@ storyboard_prompt = Path("aid_prompt_storyboard.txt").read_text(encoding="utf-8"
 def get_prompt(input_type: str, user_text: str) -> str:
     if input_type == "Play":
         return f"{play_prompt.strip()}\n\nTEXT:\n{user_text.strip()}"
-    elif input_type in ["Script or Storyboard (Text)", "Storyboard (Image)", "Storyboard (PDF - Image + Text)", "TV Spot (Video 15 - 120 sec)"]:
+    elif input_type in ["Script or Storyboard (Text)", "Storyboard (Image)", "Storyboard (PDF - Image + Text)", "TV Spot (Video 15 - 150 sec)"]:
         return f"{storyboard_prompt.strip()}\n\nTEXT:\n{user_text.strip()}"
 
 def analyze_text(input_type, user_text):
@@ -69,7 +69,7 @@ def analyze_text(input_type, user_text):
 # Výber typu vstupu
 input_type = st.radio(
     "This is AI powered dramaturgical analysis tool. What are you analyzing?",
-    ["Play", "Script or Storyboard (Text)", "Storyboard (Image)", "Storyboard (PDF - Image + Text)", "TV Spot (Video 15 - 120 sec)"],
+    ["Play", "Script or Storyboard (Text)", "Storyboard (Image)", "Storyboard (PDF - Image + Text)", "TV Spot (Video 15 - 150 sec)"],
     horizontal=True
 )
 
@@ -106,7 +106,7 @@ elif input_type == "Storyboard (Image)":
     if ocr_text:
         st.text_area("Extracted Text:", value=ocr_text.strip(), height=300)
 
-elif input_type == "TV Spot (Video 15 - 120 sec)":
+elif input_type == "TV Spot (Video 15 - 150 sec)":
     uploaded_video = st.file_uploader("Upload a TV spot (MP4, MOV, etc.):", type=["mp4", "mov"])
     if uploaded_video and not st.session_state.video_processed:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -122,7 +122,7 @@ elif input_type == "TV Spot (Video 15 - 120 sec)":
                 "-vn", "-ar", "44100", "-ac", "2", "-b:a", "192k", audio_path
             ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-            # Prepis zvuku pomocou OpenAI Whisper API (nové API)
+            # Prepis zvuku pomocou OpenAI Whisper API
             st.info("🎹 Transcribing audio with OpenAI API...")
             with open(audio_path, "rb") as audio_file:
                 transcript_response = client.audio.transcriptions.create(
@@ -137,7 +137,7 @@ elif input_type == "TV Spot (Video 15 - 120 sec)":
             frame_count = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
             fps = vidcap.get(cv2.CAP_PROP_FPS)
             duration = frame_count / fps
-            interval = max(1, int(duration // 6))  # 6 záberov na celé video
+            interval = 5  # každých 5 sekúnd
 
             frames_dir = os.path.join(tmpdir, "frames")
             os.makedirs(frames_dir, exist_ok=True)
@@ -165,7 +165,7 @@ elif input_type == "TV Spot (Video 15 - 120 sec)":
 
             vidcap.release()
 
-                        # Zobrazenie extrahovaných obrázkov ešte počas trvania tmpdir
+            # Zobrazenie extrahovaných obrázkov ešte počas trvania tmpdir
             st.markdown("### 🖼️ Extracted Keyframes")
             cols = st.columns(3)
             col_idx = 0
@@ -186,6 +186,7 @@ elif input_type == "TV Spot (Video 15 - 120 sec)":
             st.session_state.user_text = full_script.strip()
             st.session_state.video_processed = True
             st.success("✅ Script created. Ready for analysis. Would you like to see/edit it?")
+
 if st.button("Show script"):
     edited_script = st.text_area("Script Text (editable):", value=st.session_state.user_text, height=400, key="script_editor")
     if st.button("Save Changes"):
@@ -223,7 +224,7 @@ if st.button("❌ Clear All"):
     st.rerun()
 
 # RESET VIDEO BUTTON
-if input_type == "TV spot (video)" and st.button("♻️ Reset Video Processing"):
+if input_type == "TV Spot (Video 15 - 150 sec)" and st.button("♻️ Reset Video Processing"):
     st.session_state.user_text = ""
     st.session_state.analysis_output = ""
     st.session_state.video_processed = False
