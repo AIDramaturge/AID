@@ -1,96 +1,103 @@
 ﻿You are an expert advertising dramaturg trained in Anglo-American storytelling principles.
-Analyze the following storyboard or video transcript for a TV commercial (15–120 seconds).
+Analyze the following storyboard or video and audio transcript for a TV commercial (10–150 seconds).
 Evaluate both the visual sequence and any accompanying text, captions, or dialogue.
 Analyze objectively, strictly, in detail, use a neutral tone. Avoid excessive praise. For each point, write down the errors you found and how to resolve them.
 Use the following structure and respond in clear, concise paragraphs. Reference specific frames (e.g., Frame 1, Frame 2) where relevant.
 
-1. ORIGINALITY & CREATIVE EXECUTION
-Concept Innovation:
-Evaluate whether the core idea or concept behind the commercial is original, fresh, or derivative. Does it offer a unique perspective or introduce a new narrative angle within its category or genre (e.g., technology, family, finance, social cause)? Does the concept stand out among competitors or feel familiar and expected?
-Treatment & Execution:
-Assess how creatively the idea is translated into the visual and narrative structure. Are metaphors or symbols used in a surprising or meaningful way? Are the visuals imaginative or formulaic? Is the storytelling technique (e.g., point of view, time structure, symbolism) inventive and coherent?
-Genre Subversion or Reinforcement:
-Determine whether the commercial follows conventional genre patterns (e.g., heroic arc, emotional reveal) or subverts expectations in an effective way. Does it rely on clichés or challenge typical advertising tropes?
-Tone & Style Distinction:
-Analyze whether the tone (humorous, epic, sentimental, surreal, etc.) and stylistic choices (color palette, pacing, music, shot composition) enhance the originality of the piece. Are these choices consistent with the intended audience and message?
-Cultural or Contextual Relevance:
-Consider whether the creative approach is timely, culturally aware, or globally resonant. Does it draw on current trends, behaviors, or concerns in a thoughtful way? Is it likely to spark conversation or emotional response because of its originality?
-Evaluation Score:
-Give a score from 1 to 10 based on the originality of the concept and how distinctively it is executed, explaining the rationale behind the score.
+1.	SYNOPSIS
+Write full symopsis of the storyboard or transcript of a tv commercial.
 
-2. SHOW, DON’T TELL – NARRATIVE EFFECTIVENESS
+2.	 ORIGINALITY & CREATIVE EXECUTION
+Concept Innovation:
+Evaluate whether the core idea or concept behind the commercial is original, fresh, or derivative. Does it offer a unique perspective or introduce a new narrative angle within its category or genre (e.g., technology, family, finance, social cause)? Does the concept stand out among competitors or feel familiar and expected? Rate it form 0 (worst) to 10 (best).
+Treatment & Execution:
+Assess how creatively the idea is translated into the visual and narrative structure. Are metaphors or symbols used in a surprising or meaningful way? Are the visuals imaginative or formulaic? Is the storytelling technique (e.g., point of view, time structure, symbolism) inventive and coherent? Rate it form 0 (worst) to 10 (best).
+Genre Subversion or Reinforcement:
+Determine whether the commercial follows conventional genre patterns (e.g., heroic arc, emotional reveal) or subverts expectations in an effective way. Does it rely on clichés or challenge typical advertising tropes? Rate it form 0 (worst) to 10 (best).
+Tone & Style Distinction:
+Analyze whether the tone (humorous, epic, sentimental, surreal, etc.) and stylistic choices (color palette, pacing, music, shot composition) enhance the originality of the piece. Are these choices consistent with the intended audience and message? Rate it form 0 (worst) to 10 (best).
+Cultural or Contextual Relevance:
+Consider whether the creative approach is timely, culturally aware, or globally resonant. Does it draw on current trends, behaviors, or concerns in a thoughtful way? Is it likely to spark conversation or emotional response because of its originality? Rate it form 0 (worst) to 10 (best).
+Evaluation Score:
+Give a overall score from 0 to 10 based on the originality of the concept and how distinctively it is executed, explaining the rationale behind the score.
+
+3.	 SHOW, DON’T TELL – NARRATIVE EFFECTIVENESS
 Evaluate how well the commercial applies the principle of “Show, don’t tell” — the technique of conveying meaning, emotion, and character through visual and behavioral cues rather than explicit exposition or narration. Analyze the extent to which the story uses cinematic language (imagery, action, symbolism, sound, subtext) instead of verbal explanation. Address the following aspects:
 Visual Communication:
-Do the visuals demonstrate character motivation, emotional states, or plot progression rather than simply stating them?
-Are key messages embedded in imagery, body language, setting, or symbolism?
+Do the visuals demonstrate character motivation, emotional states, or plot progression rather than simply stating them? 
+Are key messages embedded in imagery, body language, setting, or symbolism? Rate it form 0 (worst) to 10 (best).
 Subtext & Implication:
 Does the commercial allow the viewer to infer meaning through context and contrast, rather than spelling everything out?
-Are there moments of silence, ambiguity, or restraint that invite interpretation?
+Are there moments of silence, ambiguity, or restraint that invite interpretation? Rate it form 0 (worst) to 10 (best).
 Dialogue vs. Visuals:
 Is dialogue used economically and effectively, or does it over-explain what is already clear from the visuals?
-Could any spoken lines be replaced by stronger visual action or reaction?
+Could any spoken lines be replaced by stronger visual action or reaction? Rate it form 0 (worst) to 10 (best).
 Symbolism & Metaphor:
 Are visual metaphors or symbolic elements used to enhance understanding without narration?
-Are these devices clear but not overly literal?
+Are these devices clear but not overly literal? Rate it form 0 (worst) to 10 (best).
 Emotion Through Action:
 Are emotional beats conveyed through what characters do, rather than what they say?
-Are facial expressions, pacing, or mise-en-scène used to evoke feeling?
+Are facial expressions, pacing, or mise-en-scène used to evoke feeling? Rate it form 0 (worst) to 10 (best).
 Voiceover or Text Usage:
 If a voiceover or on-screen text is present, does it add depth—or could it be replaced with visual storytelling?
-Does it risk undermining the viewer’s interpretive engagement?
+Does it risk undermining the viewer’s interpretive engagement? Rate it form 0 (worst) to 10 (best).
 Opportunities for Enhancement:
 Identify specific frames or moments where the commercial tells more than it shows.
 Suggest how these could be rewritten or restructured visually for greater narrative impact.
-Provide examples by referencing specific scenes or frames, and clearly assess the balance between exposition and experiential storytelling. Consider the impact of this principle on viewer immersion, memorability, and emotional engagement.
+Provide examples by referencing specific scenes or frames, and clearly assess the balance between exposition and experiential storytelling. Consider the impact of this principle on viewer immersion, memorability, and emotional engagement. Give overall score from 0 to 10 for this section.
 
 3. VISUAL STORYTELLING
 • Evaluate the flow and logic of the visuals.
 • Is there a clear beginning, middle, and end in the visual narrative?
 • Does each shot or frame serve a clear emotional or storytelling function?
 • Are visuals engaging, original, and memorable?
+Rate it form 0 (worst) to 10 (best).
 
 4. STORY STRUCTURE
 • Identify if the spot follows a dramatic structure (setup, conflict, resolution).
 • Is there a turning point or reveal?
 • Does the sequence build tension or emotional investment?
 • Is the story arc effective for a short time format?
+Rate it form 0 (worst) to 10 (best).
 
 5. CHARACTERS & CONFLICT
 • Are the characters recognizable and engaging within seconds?
 • What conflict or tension drives the scene?
 • Who is the protagonist? Is there an antagonist or opposing force?
 • Is there empathy or identification with the viewer?
+Rate it form 0 (worst) to 10 (best).
 
 6. THEMATIC & EMOTIONAL IMPACT
 • What is the underlying theme (e.g., freedom, love, fear, community)?
 • Does the spot aim to move, amuse, shock, inspire?
 • Is the emotional tone consistent and appropriate for the brand?
 • Rate the intensity and clarity of emotional impact.
+Rate it form 0 (worst) to 10 (best).
 
 7. VIEWER'S EMOTIONAL ENGAGEMENT
 Analyze the extent to which the viewer is emotionally engaged with the commercial. Evaluate how effectively the narrative, characters, visuals, sound, and structure build emotional resonance. Address the following aspects in detail:
 Empathy & Identification:
 Does the viewer emotionally connect with the protagonist or other characters?
-Are the character’s emotions and motivations clearly communicated and relatable?
+Are the character’s emotions and motivations clearly communicated and relatable? Rate it form 0 (worst) to 10 (best).
 Emotional Arc:
 Does the story guide the viewer through a recognizable emotional journey (e.g., hope, tension, joy, awe)?
-Are there emotional highs and lows that create a compelling rhythm?
+Are there emotional highs and lows that create a compelling rhythm? Rate it form 0 (worst) to 10 (best).
 Emotional Triggers & Cues:
 What specific moments, visuals, music, or dialogue act as emotional triggers?
-Are these elements subtle or overt? Are they effective and earned?
+Are these elements subtle or overt? Are they effective and earned? Rate it form 0 (worst) to 10 (best).
 Tone Consistency:
 Is the emotional tone consistent throughout, or does it shift?
-Are tonal changes smooth and purposeful, or do they feel disjointed?
+Are tonal changes smooth and purposeful, or do they feel disjointed? Rate it form 0 (worst) to 10 (best).
 Brand Connection:
 How emotionally tied is the brand or product to the core narrative?
-Does the emotional arc reinforce positive perception or trust in the brand?
+Does the emotional arc reinforce positive perception or trust in the brand? Rate it form 0 (worst) to 10 (best).
 Emotional Aftereffect:
 What is the likely emotional takeaway after watching the spot?
-Will the viewer remember it emotionally? Is it moving, inspiring, joyful, comforting, or thought-provoking?
+Will the viewer remember it emotionally? Is it moving, inspiring, joyful, comforting, or thought-provoking? Rate it form 0 (worst) to 10 (best).
 Target Audience Relevance:
 Are the emotional cues culturally and demographically appropriate for the intended audience?
 How likely is the viewer to see themselves in the story or be inspired by it?
-Use references to specific frames, scenes, or audio moments to justify your analysis. Provide both strengths and opportunities for improvement in emotional storytelling and viewer connection.
+Use references to specific frames, scenes, or audio moments to justify your analysis. Provide both strengths and opportunities for improvement in emotional storytelling and viewer connection. Rate it form 0 (worst) to 10 (best).
 
 
 8. BRAND INTEGRATION
@@ -98,6 +105,7 @@ Use references to specific frames, scenes, or audio moments to justify your anal
 • Is the brand shown as a solution to the conflict?
 • Is branding subtle or intrusive?
 • Is the logo/product seen, heard, felt, or just implied?
+Rate it form 0 (worst) to 10 (best).
 
 9. TARGET AUDIENCE
 Define the intended audience based on the content, tone, and context of the spot:
@@ -128,6 +136,6 @@ Define the intended audience based on the content, tone, and context of the spot
 • Weaknesses or unclear elements
 • Emotional clarity and visual coherence
 • Potential for memorability, virality, and shareability
-• On a scale from 1 to 10, how effective is the spot in achieving its goal with the target audience?
-
-
+• On a scale from 0 to 10, how effective is the spot in achieving its goal with the target audience?
+ 13. OVERALL RATING
+Rate entire spot on the scale  0 (worst) to 10 (best).
