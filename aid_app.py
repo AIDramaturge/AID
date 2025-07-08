@@ -12,6 +12,7 @@ import fitz  # PyMuPDF
 import pytesseract
 import base64
 import imageio_ffmpeg
+import docx2txt
 
 # Načítanie .env premenných
 env_path = Path(".env")
@@ -30,6 +31,8 @@ def init_session_state():
         st.session_state.analysis_output = ""
     if "video_processed" not in st.session_state:
         st.session_state.video_processed = False
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = []
 
 init_session_state()
 
@@ -48,17 +51,20 @@ play_prompt = Path("aid_prompt_play.txt").read_text(encoding="utf-8")
 storyboard_prompt = Path("aid_prompt_storyboard.txt").read_text(encoding="utf-8")
 
 def get_prompt(input_type: str, user_text: str) -> str:
-    if input_type == "Play":
+    if input_type == "Dramatic text (TV, Movie, Theatre)":
         return f"{play_prompt.strip()}\n\nTEXT:\n{user_text.strip()}"
-    elif input_type in ["Script or Storyboard (Text)", "Storyboard (Image)", "Storyboard (PDF - Image + Text)", "TV Spot (Video 10 - 150 sec)"]:
+    elif input_type in ["Ad Script or Storyboard (Text)", "Ad Storyboard (Image)", "Ad Storyboard (PDF - Image + Text)", "Ad TV Spot (Video 10 - 150 sec)"]:
         return f"{storyboard_prompt.strip()}\n\nTEXT:\n{user_text.strip()}"
 
 def analyze_text(input_type, user_text):
     full_prompt = get_prompt(input_type, user_text)
     try:
+        st.session_state.chat_history = [
+            {"role": "user", "content": full_prompt}
+        ]
         response = client.chat.completions.create(
             model="gpt-4-turbo",
-            messages=[{"role": "user", "content": full_prompt}],
+            messages=st.session_state.chat_history,
             temperature=0.4,
             max_tokens=4096
         )
@@ -69,11 +75,11 @@ def analyze_text(input_type, user_text):
 # Výber typu vstupu
 input_type = st.radio(
     "This is AI powered dramaturgical analysis tool. What are you analyzing?",
-    ["Play", "Script or Storyboard (Text)", "Storyboard (Image)", "Storyboard (PDF - Image + Text)", "TV Spot (Video 10 - 150 sec)"],
+    ["Dramatic text (TV, Movie, Theatre)", "Ad Script or Storyboard (Text)", "Ad Storyboard (Image)", "Ad Storyboard (PDF - Image + Text)", "Ad TV Spot (Video 10 - 150 sec)"],
     horizontal=True
 )
 
-if input_type == "Script or Storyboard (Text)":
+if input_type == "Ad Script or Storyboard (Text)":
     st.markdown("### ✍️ Paste or upload your script or storyboard")
     st.session_state.user_text = st.text_area("Paste your script or storyboard here:", height=300, key="text_input")
 
@@ -82,7 +88,7 @@ if input_type == "Script or Storyboard (Text)":
         uploaded_text = uploaded_txt.read().decode("utf-8")
         st.session_state.user_text = uploaded_text.strip()
 
-elif input_type == "Storyboard (PDF - Image + Text)":
+elif input_type == "Ad Storyboard (PDF - Image + Text)":
     st.markdown("### 📄 Upload your PDF storyboard")
     uploaded_pdf = st.file_uploader("Upload a PDF file:", type=["pdf"])
     if uploaded_pdf is not None:
@@ -93,7 +99,7 @@ elif input_type == "Storyboard (PDF - Image + Text)":
         st.session_state.user_text = pdf_text.strip()
         st.text_area("Extracted Text:", value=pdf_text.strip(), height=300)
 
-elif input_type == "Storyboard (Image)":
+elif input_type == "Ad Storyboard (Image)":
     st.markdown("### 🖼️ Upload image(s) of your storyboard")
     uploaded_files = st.file_uploader("Upload storyboard image(s):", type=["png", "jpg", "jpeg"], accept_multiple_files=True)
     ocr_text = ""
@@ -106,7 +112,8 @@ elif input_type == "Storyboard (Image)":
     if ocr_text:
         st.text_area("Extracted Text:", value=ocr_text.strip(), height=300)
 
-elif input_type == "TV Spot (Video 10 - 150 sec)":
+elif input_type == "Ad TV Spot (Video 10 - 150 sec)":
+    st.markdown("### 🎬 Upload a TV spot")
     uploaded_video = st.file_uploader("Upload a TV spot (MP4, MOV, etc.):", type=["mp4", "mov"])
     if uploaded_video and not st.session_state.video_processed:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -114,7 +121,6 @@ elif input_type == "TV Spot (Video 10 - 150 sec)":
             with open(video_path, "wb") as f:
                 f.write(uploaded_video.read())
 
-            # Extrakcia zvuku z videa
             audio_path = os.path.join(tmpdir, "audio.mp3")
             ffmpeg_path = imageio_ffmpeg.get_ffmpeg_exe()
             subprocess.run([
@@ -122,7 +128,6 @@ elif input_type == "TV Spot (Video 10 - 150 sec)":
                 "-vn", "-ar", "44100", "-ac", "2", "-b:a", "192k", audio_path
             ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-            # Prepis zvuku pomocou OpenAI Whisper API
             st.info("🎹 Transcribing audio with OpenAI API...")
             with open(audio_path, "rb") as audio_file:
                 transcript_response = client.audio.transcriptions.create(
@@ -131,13 +136,12 @@ elif input_type == "TV Spot (Video 10 - 150 sec)":
                 )
                 transcript = transcript_response.text.strip()
 
-            # Extrakcia snímok z videa
             st.info("🖼️ Extracting keyframes from video... I'm analyzing a keyframe every 2 seconds. It takes time. Sometimes a lot of time. Stay cool.")
             vidcap = cv2.VideoCapture(video_path)
             frame_count = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
             fps = vidcap.get(cv2.CAP_PROP_FPS)
             duration = frame_count / fps
-            interval = 2  # každá 2 sekunda
+            interval = 2
 
             frames_dir = os.path.join(tmpdir, "frames")
             os.makedirs(frames_dir, exist_ok=True)
@@ -165,7 +169,6 @@ elif input_type == "TV Spot (Video 10 - 150 sec)":
 
             vidcap.release()
 
-            # Zobrazenie extrahovaných obrázkov ešte počas trvania tmpdir
             st.markdown("### 🖼️ Extracted Keyframes")
             cols = st.columns(3)
             col_idx = 0
@@ -177,7 +180,6 @@ elif input_type == "TV Spot (Video 10 - 150 sec)":
                         st.image(image, caption=f"Frame at {sec} sec", use_container_width=True)
                     col_idx += 1
 
-            # Spojenie prepisu zvuku a obrazovej analýzy
             full_script = ""
             for idx, desc in enumerate(visual_descriptions):
                 full_script += f"\nScene {idx + 1}:\n[Visual] {desc}\n"
@@ -187,14 +189,24 @@ elif input_type == "TV Spot (Video 10 - 150 sec)":
             st.session_state.video_processed = True
             st.success("✅ Script created. Ready for analysis. Would you like to see/edit it?")
 
+if input_type == "Dramatic text (TV, Movie, Theatre)":
+    st.markdown("### 🎭 Paste or upload your play text")
+    st.session_state.user_text = st.text_area("Paste your play text here:", height=300, key="text_input")
+    uploaded_play = st.file_uploader("Or upload a play text file (TXT, DOCX):", type=["txt", "docx"])
+    if uploaded_play is not None:
+        if uploaded_play.name.endswith(".txt"):
+            text = uploaded_play.read().decode("utf-8")
+        elif uploaded_play.name.endswith(".docx"):
+            text = docx2txt.process(uploaded_play)
+        else:
+            text = ""
+        st.session_state.user_text = text.strip()
+
 if st.button("Show script"):
     edited_script = st.text_area("Script Text (editable):", value=st.session_state.user_text, height=400, key="script_editor")
     if st.button("Save Changes"):
         st.session_state.user_text = edited_script
         st.success("✅ Changes saved.")
-
-elif input_type == "Play":
-    st.session_state.user_text = st.text_area("Paste your play text here:", height=300, key="text_input")
 
 # Spustenie analýzy
 if st.button("Analyze"):
@@ -206,6 +218,26 @@ if st.button("Analyze"):
             st.session_state.analysis_output = result
             st.markdown("### 🔍 Analysis Result")
             st.text_area("Analysis", value=result, height=400)
+
+# Dodatočné otázky pre AID
+if st.session_state.analysis_output:
+    st.markdown("### 🤖 Ask a follow-up question to AID")
+    followup = st.text_input("Enter your question:")
+    if followup:
+        st.session_state.chat_history.append({"role": "user", "content": followup})
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4-turbo",
+                messages=st.session_state.chat_history,
+                temperature=0.4,
+                max_tokens=1024
+            )
+            answer = response.choices[0].message.content
+            st.session_state.chat_history.append({"role": "assistant", "content": answer})
+            st.markdown("### 💬 AID's Response")
+            st.write(answer)
+        except Exception as e:
+            st.error(f"Error: {e}")
 
 # COPY BUTTON
 copy_button = f'''
@@ -220,7 +252,8 @@ st.components.v1.html(copy_button, height=50)
 if st.button("❌ Clear All"):
     st.session_state.user_text = ""
     st.session_state.analysis_output = ""
-    st.session_state.video_processed = True
+    st.session_state.video_processed = False
+    st.session_state.chat_history = []
     st.rerun()
 
 # RESET VIDEO BUTTON
@@ -229,3 +262,4 @@ if input_type == "TV Spot (Video 15 - 150 sec)" and st.button("♻️ Reset Vide
     st.session_state.analysis_output = ""
     st.session_state.video_processed = False
     st.rerun()
+
