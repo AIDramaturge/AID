@@ -80,7 +80,7 @@ input_type = st.radio(
 )
 
 if input_type == "Advertising Concept/Script (Text)":
-    st.markdown("### ✍️ Paste or upload your script or storyboard")
+    st.markdown("### ✍️ Paste or upload your concept or script (in any language)")
     st.session_state.user_text = st.text_area("Paste your concept or script here:", height=300, key="text_input")
 
     uploaded_txt = st.file_uploader("Or upload a .txt file:", type=["txt"])
@@ -89,7 +89,7 @@ if input_type == "Advertising Concept/Script (Text)":
         st.session_state.user_text = uploaded_text.strip()
 
 elif input_type == "Advertising Storyboard PDF Format (Image + Text)":
-    st.markdown("### 📄 Upload your PDF storyboard")
+    st.markdown("### 📄 Upload your PDF storyboard (text in any language)")
     uploaded_pdf = st.file_uploader("Upload a PDF file:", type=["pdf"])
     if uploaded_pdf is not None:
         pdf_text = ""
@@ -113,7 +113,7 @@ elif input_type == "Advertising Storyboard (Image)":
         st.text_area("Extracted Text:", value=ocr_text.strip(), height=300)
 
 elif input_type == "Advertising TV Spot (Video 10 - 150 sec)":
-    st.markdown("### 🎬 Upload a TV spot")
+    st.markdown("### 🎬 Upload a TV spot (I understand many languages, including Slovak and Czech)")
     uploaded_video = st.file_uploader("Upload a TV spot (MP4, MOV, etc.):", type=["mp4", "mov"])
     if uploaded_video and not st.session_state.video_processed:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -190,7 +190,7 @@ elif input_type == "Advertising TV Spot (Video 10 - 150 sec)":
             st.success("✅ Script created. Ready for analysis. Would you like to see/edit it?")
 
 if input_type == "Dramatic Text (TV, Movie, Theatre)":
-    st.markdown("### 🎭 Paste or upload your dramatic text")
+    st.markdown("### 🎭 Paste or upload your dramatic text (in any language)")
     st.session_state.user_text = st.text_area("Paste your dramatic text here:", height=300, key="text_input")
     uploaded_play = st.file_uploader("Or upload a play text file (TXT, DOCX):", type=["txt", "docx"])
     if uploaded_play is not None:
