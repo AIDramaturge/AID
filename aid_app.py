@@ -53,7 +53,7 @@ storyboard_prompt = Path("aid_prompt_storyboard.txt").read_text(encoding="utf-8"
 def get_prompt(input_type: str, user_text: str) -> str:
     if input_type == "Dramatic text (TV, Movie, Theatre)":
         return f"{play_prompt.strip()}\n\nTEXT:\n{user_text.strip()}"
-    elif input_type in ["Ad Script or Storyboard (Text)", "Ad Storyboard (Image)", "Ad Storyboard (PDF - Image + Text)", "Ad TV Spot (Video 10 - 150 sec)"]:
+    elif input_type in ["Advertising Concept/Script (Text)", "Advertising Storyboard (Image)", "Advertising Storyboard (PDF - Image + Text)", "Advertising TV Spot (Video 10 - 150 sec)"]:
         return f"{storyboard_prompt.strip()}\n\nTEXT:\n{user_text.strip()}"
 
 def analyze_text(input_type, user_text):
@@ -75,20 +75,20 @@ def analyze_text(input_type, user_text):
 # Výber typu vstupu
 input_type = st.radio(
     "This is AI powered dramaturgical analysis tool. What are you analyzing?",
-    ["Dramatic text (TV, Movie, Theatre)", "Ad Script or Storyboard (Text)", "Ad Storyboard (Image)", "Ad Storyboard (PDF - Image + Text)", "Ad TV Spot (Video 10 - 150 sec)"],
+    ["Dramatic text (TV, Movie, Theatre)", "Advertising Concept/Script (Text)", "Advertising Storyboard (Image)", "Advertising Storyboard (PDF - Image + Text)", "Advertising TV Spot (Video 10 - 150 sec)"],
     horizontal=True
 )
 
-if input_type == "Ad Script or Storyboard (Text)":
+if input_type == "Advertising Concept/Script (Text)":
     st.markdown("### ✍️ Paste or upload your script or storyboard")
-    st.session_state.user_text = st.text_area("Paste your script or storyboard here:", height=300, key="text_input")
+    st.session_state.user_text = st.text_area("Paste your concept or script here:", height=300, key="text_input")
 
     uploaded_txt = st.file_uploader("Or upload a .txt file:", type=["txt"])
     if uploaded_txt is not None:
         uploaded_text = uploaded_txt.read().decode("utf-8")
         st.session_state.user_text = uploaded_text.strip()
 
-elif input_type == "Ad Storyboard (PDF - Image + Text)":
+elif input_type == "Advertising Storyboard (PDF - Image + Text)":
     st.markdown("### 📄 Upload your PDF storyboard")
     uploaded_pdf = st.file_uploader("Upload a PDF file:", type=["pdf"])
     if uploaded_pdf is not None:
@@ -99,7 +99,7 @@ elif input_type == "Ad Storyboard (PDF - Image + Text)":
         st.session_state.user_text = pdf_text.strip()
         st.text_area("Extracted Text:", value=pdf_text.strip(), height=300)
 
-elif input_type == "Ad Storyboard (Image)":
+elif input_type == "Advertising Storyboard (Image)":
     st.markdown("### 🖼️ Upload image(s) of your storyboard")
     uploaded_files = st.file_uploader("Upload storyboard image(s):", type=["png", "jpg", "jpeg"], accept_multiple_files=True)
     ocr_text = ""
@@ -112,7 +112,7 @@ elif input_type == "Ad Storyboard (Image)":
     if ocr_text:
         st.text_area("Extracted Text:", value=ocr_text.strip(), height=300)
 
-elif input_type == "Ad TV Spot (Video 10 - 150 sec)":
+elif input_type == "Advertising TV Spot (Video 10 - 150 sec)":
     st.markdown("### 🎬 Upload a TV spot")
     uploaded_video = st.file_uploader("Upload a TV spot (MP4, MOV, etc.):", type=["mp4", "mov"])
     if uploaded_video and not st.session_state.video_processed:
