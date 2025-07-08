@@ -53,7 +53,7 @@ storyboard_prompt = Path("aid_prompt_storyboard.txt").read_text(encoding="utf-8"
 def get_prompt(input_type: str, user_text: str) -> str:
     if input_type == "Dramatic text (TV, Movie, Theatre)":
         return f"{play_prompt.strip()}\n\nTEXT:\n{user_text.strip()}"
-    elif input_type in ["Advertising Concept/Script (Text)", "Advertising Storyboard (Image)", "Advertising Storyboard PDF (Image + Text)", "Advertising TV Spot (Video 10 - 150 sec)"]:
+    elif input_type in ["Advertising Concept/Script (Text)", "Advertising Storyboard (Image)", "Advertising Storyboard PDF Format (Image + Text)", "Advertising TV Spot (Video 10 - 150 sec)"]:
         return f"{storyboard_prompt.strip()}\n\nTEXT:\n{user_text.strip()}"
 
 def analyze_text(input_type, user_text):
@@ -75,7 +75,7 @@ def analyze_text(input_type, user_text):
 # Výber typu vstupu
 input_type = st.radio(
     "This is an AI-powered dramaturgical analysis tool using the principles of Anglo-American dramaturgy. What are you analyzing?",
-    ["Dramatic text (TV, Movie, Theatre)", "Advertising Concept/Script (Text)", "Advertising Storyboard (Image)", "Advertising Storyboard PDF (Image + Text)", "Advertising TV Spot (Video 10 - 150 sec)"],
+    ["Dramatic text (TV, Movie, Theatre)", "Advertising Concept/Script (Text)", "Advertising Storyboard (Image)", "Advertising Storyboard PDF Format (Image + Text)", "Advertising TV Spot (Video 10 - 150 sec)"],
     horizontal=True
 )
 
@@ -88,7 +88,7 @@ if input_type == "Advertising Concept/Script (Text)":
         uploaded_text = uploaded_txt.read().decode("utf-8")
         st.session_state.user_text = uploaded_text.strip()
 
-elif input_type == "Advertising Storyboard PDF (Image + Text)":
+elif input_type == "Advertising Storyboard PDF Format (Image + Text)":
     st.markdown("### 📄 Upload your PDF storyboard")
     uploaded_pdf = st.file_uploader("Upload a PDF file:", type=["pdf"])
     if uploaded_pdf is not None:
