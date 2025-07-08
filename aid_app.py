@@ -13,6 +13,8 @@ import pytesseract
 import base64
 import imageio_ffmpeg
 import docx2txt
+import io
+from io import BytesIO
 
 # Načítanie .env premenných
 env_path = Path(".env")
@@ -79,6 +81,60 @@ input_type = st.radio(
     horizontal=True
 )
 
+# Funkcia na OCR pomocou OpenAI GPT-4o
+def extract_text_with_openai(image: Image.Image) -> str:
+    buffered = BytesIO()
+    image.save(buffered, format="JPEG")
+    img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "user", "content": [
+                    {"type": "text", "text": "First, extract all readable text from the image (OCR). Then, describe the image in detail as if you were writing a scene description for a storyboard. Focus on people, actions, emotions, setting, objects, and atmosphere."},
+                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{img_str}"}}
+                ]}
+            ],
+            max_tokens=1024
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        return f"OCR Error: {e}"
+
+# Spracovanie storyboardu PDF s textom aj obrázkami
+if input_type == "Advertising Storyboard PDF Format (Image + Text)":
+    st.markdown("### 📄 Upload your PDF storyboard (text in any language)")
+    uploaded_pdf = st.file_uploader("Upload a PDF file:", type=["pdf"])
+    if uploaded_pdf is not None:
+        pdf_text = ""
+        ocr_text = ""
+        images = []
+
+        with fitz.open(stream=uploaded_pdf.read(), filetype="pdf") as doc:
+            for page_number, page in enumerate(doc):
+                # Extrahuj text
+                pdf_text += page.get_text()
+
+                # Extrahuj obrázky
+                image_list = page.get_images(full=True)
+                for img_index, img in enumerate(image_list):
+                    xref = img[0]
+                    base_image = doc.extract_image(xref)
+                    image_bytes = base_image["image"]
+
+                    try:
+                        image = Image.open(BytesIO(image_bytes)).convert("RGB")
+                        extracted_text = extract_text_with_openai(image)
+                    except Exception as e:
+                        extracted_text = f"OCR Error on Page {page_number + 1}, Image {img_index + 1} ---\n{e}"
+
+                    ocr_text += f"\n--- OCR from Page {page_number + 1}, Image {img_index + 1} ---\n{extracted_text}"
+
+        combined_text = (pdf_text.strip() + "\n\n" + ocr_text.strip()).strip()
+        st.session_state.user_text = combined_text
+        st.text_area("Extracted Text + OCR", value=combined_text, height=400)
+    
 if input_type == "Advertising Concept/Script (Text)":
     st.markdown("### ✍️ Paste or upload your concept or script (in any language)")
     st.session_state.user_text = st.text_area("Paste your concept or script here:", height=300, key="text_input")
@@ -87,17 +143,6 @@ if input_type == "Advertising Concept/Script (Text)":
     if uploaded_txt is not None:
         uploaded_text = uploaded_txt.read().decode("utf-8")
         st.session_state.user_text = uploaded_text.strip()
-
-elif input_type == "Advertising Storyboard PDF Format (Image + Text)":
-    st.markdown("### 📄 Upload your PDF storyboard (text in any language)")
-    uploaded_pdf = st.file_uploader("Upload a PDF file:", type=["pdf"])
-    if uploaded_pdf is not None:
-        pdf_text = ""
-        with fitz.open(stream=uploaded_pdf.read(), filetype="pdf") as doc:
-            for page in doc:
-                pdf_text += page.get_text()
-        st.session_state.user_text = pdf_text.strip()
-        st.text_area("Extracted Text:", value=pdf_text.strip(), height=300)
 
 elif input_type == "Advertising Storyboard (Image)":
     st.markdown("### 🖼️ Upload image(s) of your storyboard")
@@ -221,8 +266,8 @@ if st.button("Analyze"):
 
 # Dodatočné otázky pre AID
 if st.session_state.analysis_output:
-    st.markdown("### 🤖 Ask a follow-up question to AID")
-    followup = st.text_input("Enter your question:")
+    st.markdown("### 🤖 You can continue with an additional questions or tasks for AID.")
+    followup = st.text_input("Enter your question/task:")
     if followup:
         st.session_state.chat_history.append({"role": "user", "content": followup})
         try:
