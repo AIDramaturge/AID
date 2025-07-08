@@ -9,80 +9,14 @@ import cv2
 import shutil
 from dotenv import load_dotenv
 import fitz  # PyMuPDF
-import pytesseract
 import base64
 import imageio_ffmpeg
 import docx2txt
-import io
 from io import BytesIO
 
-# Načítanie .env premenných
-env_path = Path(".env")
-if env_path.exists():
-    load_dotenv(dotenv_path=env_path)
+# ---------------------- FUNKCIE NA SPRACOVANIE OBRAZKOV ----------------------
 
-# Inicializácia OpenAI klienta
-client = openai.OpenAI()
-openai.api_key = os.getenv("OPENAI_API_KEY")
-
-# Inicializácia session state
-def init_session_state():
-    if "user_text" not in st.session_state:
-        st.session_state.user_text = ""
-    if "analysis_output" not in st.session_state:
-        st.session_state.analysis_output = ""
-    if "video_processed" not in st.session_state:
-        st.session_state.video_processed = False
-    if "chat_history" not in st.session_state:
-        st.session_state.chat_history = []
-
-init_session_state()
-
-# Zobrazenie loga a názvu aplikácie v hlavičke
-logo = Image.open("logo_cg.png")
-col1, col2 = st.columns([1, 4])
-with col1:
-    st.image(logo, width=400)
-with col2:
-    st.markdown("<h1 style='padding-top: 0px;'>AID - Artificial Intelligence Dramaturge</h1>", unsafe_allow_html=True)
-
-st.set_page_config(page_title="AI Dramaturge", layout="wide")
-
-# Načítanie promptov
-play_prompt = Path("aid_prompt_play.txt").read_text(encoding="utf-8")
-storyboard_prompt = Path("aid_prompt_storyboard.txt").read_text(encoding="utf-8")
-
-def get_prompt(input_type: str, user_text: str) -> str:
-    if input_type == "Dramatic Text (TV, Movie, Theatre)":
-        return f"{play_prompt.strip()}\n\nTEXT:\n{user_text.strip()}"
-    elif input_type in ["Advertising Concept/Script (Text)", "Advertising Storyboard (Image)", "Advertising Storyboard PDF Format (Image + Text)", "Advertising TV Spot (Video 10 - 150 sec)"]:
-        return f"{storyboard_prompt.strip()}\n\nTEXT:\n{user_text.strip()}"
-
-def analyze_text(input_type, user_text):
-    full_prompt = get_prompt(input_type, user_text)
-    try:
-        st.session_state.chat_history = [
-            {"role": "user", "content": full_prompt}
-        ]
-        response = client.chat.completions.create(
-            model="gpt-4-turbo",
-            messages=st.session_state.chat_history,
-            temperature=0.4,
-            max_tokens=4096
-        )
-        return response.choices[0].message.content
-    except Exception as e:
-        return f"Error: {e}"
-
-# Výber typu vstupu
-input_type = st.radio(
-    "This is an AI-powered dramaturgical analysis tool using the principles of Anglo-American dramaturgy. What are you analyzing?",
-    ["Dramatic Text (TV, Movie, Theatre)", "Advertising Concept/Script (Text)", "Advertising Storyboard (Image)", "Advertising Storyboard PDF Format (Image + Text)", "Advertising TV Spot (Video 10 - 150 sec)"],
-    horizontal=True
-)
-
-# Funkcia na OCR pomocou OpenAI GPT-4o
-def extract_text_with_openai(image: Image.Image) -> str:
+def extract_visual_description_with_openai(image: Image.Image) -> str:
     buffered = BytesIO()
     image.save(buffered, format="JPEG")
     img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
@@ -102,8 +36,105 @@ def extract_text_with_openai(image: Image.Image) -> str:
     except Exception as e:
         return f"OCR Error: {e}"
 
+# ---------------------- ENV A OPENAI ----------------------
+
+env_path = Path(".env")
+if env_path.exists():
+    load_dotenv(dotenv_path=env_path)
+
+client = openai.OpenAI()
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+# ---------------------- SESSION STATE ----------------------
+
+def init_session_state():
+    if "user_text" not in st.session_state:
+        st.session_state.user_text = ""
+    if "analysis_output" not in st.session_state:
+        st.session_state.analysis_output = ""
+    if "video_processed" not in st.session_state:
+        st.session_state.video_processed = False
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = []
+
+init_session_state()
+
+# ---------------------- UI HLAVICKA ----------------------
+
+logo = Image.open("logo_cg.png")
+col1, col2 = st.columns([1, 4])
+with col1:
+    st.image(logo, width=400)
+with col2:
+    st.markdown("<h1 style='padding-top: 0px;'>AID - Artificial Intelligence Dramaturge</h1>", unsafe_allow_html=True)
+
+st.set_page_config(page_title="AI Dramaturge", layout="wide")
+
+# ---------------------- NAČÍTANIE PROMPTOV ----------------------
+
+play_prompt = Path("aid_prompt_play.txt").read_text(encoding="utf-8")
+storyboard_prompt = Path("aid_prompt_storyboard.txt").read_text(encoding="utf-8")
+
+def get_prompt(input_type: str, user_text: str) -> str:
+    if input_type == "Dramatic Text (TV, Movie, Theatre)":
+        return f"{play_prompt.strip()}\n\nTEXT:\n{user_text.strip()}"
+    else:
+        return f"{storyboard_prompt.strip()}\n\nTEXT:\n{user_text.strip()}"
+
+def analyze_text(input_type, user_text):
+    full_prompt = get_prompt(input_type, user_text)
+    try:
+        st.session_state.chat_history = [
+            {"role": "user", "content": full_prompt}
+        ]
+        response = client.chat.completions.create(
+            model="gpt-4-turbo",
+            messages=st.session_state.chat_history,
+            temperature=0.4,
+            max_tokens=4096
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        return f"Error: {e}"
+
+# ---------------------- VÝBER TYPU ANALÝZY ----------------------
+
+input_type = st.radio(
+    "This is an AI-powered dramaturgical analysis tool using the principles of Anglo-American dramaturgy. What are you analyzing?",
+    ["Dramatic Text (TV, Movie, Theatre)", "Advertising Concept/Script (Text)", "Advertising Storyboard (Image)", "Advertising Storyboard PDF Format (Image + Text)", "Advertising TV Spot (Video 10 - 150 sec)"],
+    horizontal=True
+)
+
+# ---------------------- SPRACOVANIE OBRAZKOV ZO STORYBOARDU ----------------------
+
+if input_type == "Advertising Storyboard (Image)":
+    st.markdown("### 🖼️ Upload image(s) of your storyboard")
+    uploaded_files = st.file_uploader("Upload storyboard image(s):", type=["png", "jpg", "jpeg"], accept_multiple_files=True, key="image_storyboard_uploader")
+    description_text = ""
+    if uploaded_files:
+        for uploaded_file in uploaded_files:
+            try:
+                image = Image.open(uploaded_file).convert("RGB")
+                extracted = extract_visual_description_with_openai(image)
+                description_text += f"\n--- From {uploaded_file.name} ---\n{extracted}\n"
+            except Exception as e:
+                description_text += f"\n--- Error with {uploaded_file.name} ---\n{e}"
+
+    st.session_state.user_text = description_text.strip()
+    if description_text:
+        st.text_area("Extracted Description & Text from Images:", value=description_text.strip(), height=400)
+    
+if input_type == "Advertising Concept/Script (Text)":
+    st.markdown("### ✍️ Paste or upload your concept or script (in any language)")
+    st.session_state.user_text = st.text_area("Paste your concept or script here:", height=300, key="text_input")
+
+    uploaded_txt = st.file_uploader("Or upload a .txt file:", type=["txt"])
+    if uploaded_txt is not None:
+        uploaded_text = uploaded_txt.read().decode("utf-8")
+        st.session_state.user_text = uploaded_text.strip()
+
 # Spracovanie storyboardu PDF s textom aj obrázkami
-if input_type == "Advertising Storyboard PDF Format (Image + Text)":
+elif input_type == "Advertising Storyboard PDF Format (Image + Text)":
     st.markdown("### 📄 Upload your PDF storyboard (text in any language)")
     uploaded_pdf = st.file_uploader("Upload a PDF file:", type=["pdf"])
     if uploaded_pdf is not None:
@@ -125,7 +156,7 @@ if input_type == "Advertising Storyboard PDF Format (Image + Text)":
 
                     try:
                         image = Image.open(BytesIO(image_bytes)).convert("RGB")
-                        extracted_text = extract_text_with_openai(image)
+                        extracted_text = extract_visual_description_with_openai(image)
                     except Exception as e:
                         extracted_text = f"OCR Error on Page {page_number + 1}, Image {img_index + 1} ---\n{e}"
 
@@ -134,28 +165,6 @@ if input_type == "Advertising Storyboard PDF Format (Image + Text)":
         combined_text = (pdf_text.strip() + "\n\n" + ocr_text.strip()).strip()
         st.session_state.user_text = combined_text
         st.text_area("Extracted Text + OCR", value=combined_text, height=400)
-    
-if input_type == "Advertising Concept/Script (Text)":
-    st.markdown("### ✍️ Paste or upload your concept or script (in any language)")
-    st.session_state.user_text = st.text_area("Paste your concept or script here:", height=300, key="text_input")
-
-    uploaded_txt = st.file_uploader("Or upload a .txt file:", type=["txt"])
-    if uploaded_txt is not None:
-        uploaded_text = uploaded_txt.read().decode("utf-8")
-        st.session_state.user_text = uploaded_text.strip()
-
-elif input_type == "Advertising Storyboard (Image)":
-    st.markdown("### 🖼️ Upload image(s) of your storyboard")
-    uploaded_files = st.file_uploader("Upload storyboard image(s):", type=["png", "jpg", "jpeg"], accept_multiple_files=True)
-    ocr_text = ""
-    for uploaded_file in uploaded_files:
-        if uploaded_file is not None:
-            image = Image.open(uploaded_file)
-            extracted_text = pytesseract.image_to_string(image)
-            ocr_text += f"\n--- From {uploaded_file.name} ---\n" + extracted_text
-    st.session_state.user_text = ocr_text.strip()
-    if ocr_text:
-        st.text_area("Extracted Text:", value=ocr_text.strip(), height=300)
 
 elif input_type == "Advertising TV Spot (Video 10 - 150 sec)":
     st.markdown("### 🎬 Upload a TV spot (I understand many languages, including Slovak and Czech)")
@@ -307,4 +316,3 @@ if input_type == "TV Spot (Video 15 - 150 sec)" and st.button("♻️ Reset Vide
     st.session_state.analysis_output = ""
     st.session_state.video_processed = False
     st.rerun()
-
