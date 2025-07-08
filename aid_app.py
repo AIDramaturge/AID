@@ -138,33 +138,34 @@ elif input_type == "Advertising Storyboard PDF Format (Image + Text)":
     st.markdown("### 📄 Upload your PDF storyboard (text in any language)")
     uploaded_pdf = st.file_uploader("Upload a PDF file:", type=["pdf"])
     if uploaded_pdf is not None:
-        pdf_text = ""
-        ocr_text = ""
-        images = []
+        with st.spinner("🕐 I'm still transcribing the images and text into a text script. That may take some time."):
+            pdf_text = ""
+            ocr_text = ""
+            images = []
 
-        with fitz.open(stream=uploaded_pdf.read(), filetype="pdf") as doc:
-            for page_number, page in enumerate(doc):
+            with fitz.open(stream=uploaded_pdf.read(), filetype="pdf") as doc:
+                for page_number, page in enumerate(doc):
                 # Extrahuj text
-                pdf_text += page.get_text()
+                    pdf_text += page.get_text()
 
                 # Extrahuj obrázky
-                image_list = page.get_images(full=True)
-                for img_index, img in enumerate(image_list):
-                    xref = img[0]
-                    base_image = doc.extract_image(xref)
-                    image_bytes = base_image["image"]
+                    image_list = page.get_images(full=True)
+                    for img_index, img in enumerate(image_list):
+                        xref = img[0]
+                        base_image = doc.extract_image(xref)
+                        image_bytes = base_image["image"]
 
-                    try:
-                        image = Image.open(BytesIO(image_bytes)).convert("RGB")
-                        extracted_text = extract_visual_description_with_openai(image)
-                    except Exception as e:
-                        extracted_text = f"OCR Error on Page {page_number + 1}, Image {img_index + 1} ---\n{e}"
+                        try:
+                            image = Image.open(BytesIO(image_bytes)).convert("RGB")
+                            extracted_text = extract_visual_description_with_openai(image)
+                        except Exception as e:
+                            extracted_text = f"OCR Error on Page {page_number + 1}, Image {img_index + 1} ---\n{e}"
 
-                    ocr_text += f"\n--- OCR from Page {page_number + 1}, Image {img_index + 1} ---\n{extracted_text}"
+                        ocr_text += f"\n--- OCR from Page {page_number + 1}, Image {img_index + 1} ---\n{extracted_text}"
 
-        combined_text = (pdf_text.strip() + "\n\n" + ocr_text.strip()).strip()
-        st.session_state.user_text = combined_text
-        st.text_area("Extracted Text + OCR", value=combined_text, height=400)
+            combined_text = (pdf_text.strip() + "\n\n" + ocr_text.strip()).strip()
+            st.session_state.user_text = combined_text
+            st.text_area("Extracted Text + OCR", value=combined_text, height=400)
 
 elif input_type == "Advertising TV Spot (Video 10 - 150 sec)":
     st.markdown("### 🎬 Upload a TV spot (I understand many languages, including Slovak and Czech)")
