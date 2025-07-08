@@ -190,8 +190,8 @@ elif input_type == "Advertising TV Spot (Video 10 - 150 sec)":
             st.success("✅ Script created. Ready for analysis. Would you like to see/edit it?")
 
 if input_type == "Dramatic text (TV, Movie, Theatre)":
-    st.markdown("### 🎭 Paste or upload your play text")
-    st.session_state.user_text = st.text_area("Paste your play text here:", height=300, key="text_input")
+    st.markdown("### 🎭 Paste or upload your dramatic text")
+    st.session_state.user_text = st.text_area("Paste your dramatic text here:", height=300, key="text_input")
     uploaded_play = st.file_uploader("Or upload a play text file (TXT, DOCX):", type=["txt", "docx"])
     if uploaded_play is not None:
         if uploaded_play.name.endswith(".txt"):
