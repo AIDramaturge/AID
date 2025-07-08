@@ -30,13 +30,13 @@ For each major and supporting character:
 
 **Format your response as:**
 
-- Patrick:
+- Name of character 1:
 
   1. ...
 
   2. ...
 
-- Father John:
+- Name of character 2:
 
   1. ...
 
@@ -85,6 +85,8 @@ For each major and supporting character:
 4. Where does the pacing feel too slow or too fast?
 
 5. Could anything be cut or merged?
+
+6. Story arc - how is it evolving? Is it clear, coherent, smooth? Any disruptions? Is there clear resolution/Denouement? Is there plot twist?
 
 
 
