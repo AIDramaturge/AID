@@ -74,7 +74,7 @@ def analyze_text(input_type, user_text):
 
 # Výber typu vstupu
 input_type = st.radio(
-    "This is AI powered dramaturgical analysis tool. What are you analyzing?",
+    "This is an AI-powered dramaturgical analysis tool using the principles of Anglo-American dramaturgy. What are you analyzing?",
     ["Dramatic text (TV, Movie, Theatre)", "Advertising Concept/Script (Text)", "Advertising Storyboard (Image)", "Advertising Storyboard (PDF - Image + Text)", "Advertising TV Spot (Video 10 - 150 sec)"],
     horizontal=True
 )
