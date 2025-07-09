@@ -107,22 +107,24 @@ input_type = st.radio(
 
 # ---------------------- SPRACOVANIE OBRAZKOV ZO STORYBOARDU ----------------------
 
-if input_type == "Advertising Storyboard (Image)":
+if input_type == "Advertising Storyboard (Image)": 
     st.markdown("### 🖼️ Upload image(s) of your storyboard")
     uploaded_files = st.file_uploader("Upload storyboard image(s):", type=["png", "jpg", "jpeg"], accept_multiple_files=True, key="image_storyboard_uploader")
     description_text = ""
-    if uploaded_files:
-        for uploaded_file in uploaded_files:
-            try:
-                image = Image.open(uploaded_file).convert("RGB")
-                extracted = extract_visual_description_with_openai(image)
-                description_text += f"\n--- From {uploaded_file.name} ---\n{extracted}\n"
-            except Exception as e:
-                description_text += f"\n--- Error with {uploaded_file.name} ---\n{e}"
 
-    st.session_state.user_text = description_text.strip()
-    if description_text:
-        st.text_area("Extracted Description & Text from Images:", value=description_text.strip(), height=400)
+    if uploaded_files:
+        with st.spinner("🕐 I'm still transcribing the images and text into a text script. That may take some time."):
+            for uploaded_file in uploaded_files:
+                try:
+                    image = Image.open(uploaded_file).convert("RGB")
+                    extracted = extract_visual_description_with_openai(image)
+                    description_text += f"\n--- From {uploaded_file.name} ---\n{extracted}\n"
+                except Exception as e:
+                    description_text += f"\n--- Error with {uploaded_file.name} ---\n{e}"
+
+        st.session_state.user_text = description_text.strip()
+        if description_text:
+            st.text_area("Extracted Description & Text from Images:", value=description_text.strip(), height=400)
     
 if input_type == "Advertising Concept/Script (Text)":
     st.markdown("### ✍️ Paste or upload your concept or script (in any language)")
@@ -183,47 +185,51 @@ elif input_type == "Advertising TV Spot (Video 10 - 150 sec)":
                 "-vn", "-ar", "44100", "-ac", "2", "-b:a", "192k", audio_path
             ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-            st.info("🎹 Transcribing audio with OpenAI API...")
-            with open(audio_path, "rb") as audio_file:
-                transcript_response = client.audio.transcriptions.create(
-                    model="whisper-1",
-                    file=audio_file
-                )
-                transcript = transcript_response.text.strip()
+            # Transkripcia audia s točiacim sa kolieskom
+            with st.spinner("🎹 Transcribing audio with OpenAI API..."):
+                with open(audio_path, "rb") as audio_file:
+                    transcript_response = client.audio.transcriptions.create(
+                        model="whisper-1",
+                        file=audio_file,
+                        prompt="This is a scene that may contain spoken dialogue or sung lyrics or voice over. Please transcribe all audible text accurately."
+                    )
+                    transcript = transcript_response.text.strip()
 
-            st.info("🖼️ Extracting keyframes from video... I'm analyzing a keyframe every 2 seconds. It takes time. Sometimes a lot of time. Stay cool.")
-            vidcap = cv2.VideoCapture(video_path)
-            frame_count = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
-            fps = vidcap.get(cv2.CAP_PROP_FPS)
-            duration = frame_count / fps
-            interval = 2
+            # Extrakcia snímok s točiacim sa kolieskom
+            with st.spinner("🖼️ Extracting keyframes from video... I analyze one keyframe every 2 seconds during the spot. It takes time. Sometimes a lot of time. Stay cool."):
+                vidcap = cv2.VideoCapture(video_path)
+                frame_count = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
+                fps = vidcap.get(cv2.CAP_PROP_FPS)
+                duration = frame_count / fps
+                interval = 2
 
-            frames_dir = os.path.join(tmpdir, "frames")
-            os.makedirs(frames_dir, exist_ok=True)
+                frames_dir = os.path.join(tmpdir, "frames")
+                os.makedirs(frames_dir, exist_ok=True)
 
-            visual_descriptions = []
-            for sec in range(0, int(duration), interval):
-                vidcap.set(cv2.CAP_PROP_POS_MSEC, sec * 1000)
-                success, image = vidcap.read()
-                if success:
-                    img_path = os.path.join(frames_dir, f"frame_{sec}.jpg")
-                    cv2.imwrite(img_path, image)
-                    with open(img_path, "rb") as img_file:
-                        encoded_image = base64.b64encode(img_file.read()).decode("utf-8")
-                        response = client.chat.completions.create(
-                            model="gpt-4o",
-                            messages=[
-                                {"role": "user", "content": [
-                                    {"type": "text", "text": "Describe this frame in detail like a visual script or storyboard."},
-                                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{encoded_image}"}}
-                                ]}
-                            ],
-                            max_tokens=500
-                        )
-                        visual_descriptions.append(response.choices[0].message.content.strip())
+                visual_descriptions = []
+                for sec in range(0, int(duration), interval):
+                    vidcap.set(cv2.CAP_PROP_POS_MSEC, sec * 1000)
+                    success, image = vidcap.read()
+                    if success:
+                        img_path = os.path.join(frames_dir, f"frame_{sec}.jpg")
+                        cv2.imwrite(img_path, image)
+                        with open(img_path, "rb") as img_file:
+                            encoded_image = base64.b64encode(img_file.read()).decode("utf-8")
+                            response = client.chat.completions.create(
+                                model="gpt-4o",
+                                messages=[
+                                    {"role": "user", "content": [
+                                        {"type": "text", "text": "Describe this frame in detail like a visual script or storyboard."},
+                                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{encoded_image}"}}
+                                    ]}
+                                ],
+                                max_tokens=500
+                            )
+                            visual_descriptions.append(response.choices[0].message.content.strip())
 
-            vidcap.release()
+                vidcap.release()
 
+            # Zobrazenie extrahovaných kľúčových snímok
             st.markdown("### 🖼️ Extracted Keyframes")
             cols = st.columns(3)
             col_idx = 0
@@ -235,11 +241,12 @@ elif input_type == "Advertising TV Spot (Video 10 - 150 sec)":
                         st.image(image, caption=f"Frame at {sec} sec", use_container_width=True)
                     col_idx += 1
 
+            # Spojenie vizuálnej a audio časti
             full_script = ""
             for idx, desc in enumerate(visual_descriptions):
                 full_script += f"\nScene {idx + 1}:\n[Visual] {desc}\n"
-
             full_script += f"\n[Transcripted Audio]\n{transcript}"
+
             st.session_state.user_text = full_script.strip()
             st.session_state.video_processed = True
             st.success("✅ Script created. Ready for analysis. Would you like to see/edit it?")
@@ -258,9 +265,13 @@ if input_type == "Dramatic Text (TV, Movie, Theatre)":
         st.session_state.user_text = text.strip()
 
 if st.button("Show script"):
+    st.session_state.show_script = True  # nastavíme flag
+
+if st.session_state.get("show_script", False):
     edited_script = st.text_area("Script Text (editable):", value=st.session_state.user_text, height=400, key="script_editor")
+
     if st.button("Save Changes"):
-        st.session_state.user_text = edited_script
+        st.session_state.user_text = st.session_state["script_editor"]
         st.success("✅ Changes saved.")
 
 # Spustenie analýzy
@@ -285,7 +296,7 @@ if st.session_state.analysis_output:
                 model="gpt-4-turbo",
                 messages=st.session_state.chat_history,
                 temperature=0.4,
-                max_tokens=1024
+                max_tokens=4096
             )
             answer = response.choices[0].message.content
             st.session_state.chat_history.append({"role": "assistant", "content": answer})
@@ -299,7 +310,7 @@ copy_button = f'''
     <button onclick="navigator.clipboard.writeText(document.getElementById('analysis_copy').value)">
         Copy Analysis
     </button>
-    <textarea id='analysis_copy' style='display:none;'>{st.session_state.get("analysis_output", "").replace("</", "<\/")}</textarea>
+    <textarea id='analysis_copy' style='display:none;'>{st.session_state.get("analysis_output", "").replace("</", "<\\/")}
 '''
 st.components.v1.html(copy_button, height=50)
 
