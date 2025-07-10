@@ -103,7 +103,7 @@ def analyze_text(input_type, user_text):
 
 input_type = st.radio(
     "This is an AI-powered dramaturgical analysis tool using the principles of Anglo-American dramaturgy. What are you analyzing?",
-    ["Dramatic Text (TV, Movie, Theatre)", "Advertising Concept/Script (Text)", "Advertising Storyboard (Image)", "Advertising Storyboard PDF Format (Image + Text)", "Advertising TV Commercial (Video 10 - 150 sec)"],
+    ["Dramatic Text (TV, Movie, Theatre)", "Advertising Concept/Script (Text)", "Advertising Storyboard (Image)", "Advertising Storyboard PDF Format (Image + Text)", "TV Commercial (Video 10 - 150 sec)"],
     horizontal=True
 )
 
@@ -173,17 +173,17 @@ elif input_type == "Advertising Storyboard PDF Format (Image + Text)":
 
 # ---------------------- SPRACOVANIE VIDEA Z YOUTUBE A UPLOAD ----------------------
 
-if input_type == "Advertising TV Commercial (Video 10 - 150 sec)":
+if input_type == "TV Commercial (Video 10 - 150 sec)":
     st.markdown("### 🎬 Upload a TV commercial or paste a video URL (e.g., YouTube, Vimeo, etc.). I understand multiple languages, including Slovak and Czech.")
     uploaded_video = None
     youtube_url = ""
 
-if input_type == "Advertising TV Commercial (Video 10 - 150 sec)": 
+if input_type == "TV Commercial (Video 10 - 150 sec)": 
     uploaded_video = st.file_uploader("Upload a video file:", type=["mp4", "mov", "mkv", "webm", "flv", "avi"])
     youtube_url = st.text_input("Paste a video URL to analyze:")
 
 # Ak bol zadaný URL, ale nebol nahraný súbor, stiahni video
-if input_type == "Advertising TV Commercial (Video 10 - 150 sec)" and youtube_url and not uploaded_video and not st.session_state.video_processed: 
+if input_type == "TV Commercial (Video 10 - 150 sec)" and youtube_url and not uploaded_video and not st.session_state.video_processed: 
     with tempfile.TemporaryDirectory() as tmpdir:
         try:
             ydl_opts = {
@@ -370,7 +370,7 @@ if st.button("❌ Clear All"):
     st.rerun()
 
 # RESET VIDEO BUTTON
-if input_type == "Advertising TV Commercial (Video 10 - 150 sec)" and st.button("♻️ Reset Video Processing"):
+if input_type == "TV Commercial (Video 10 - 150 sec)" and st.button("♻️ Reset Video Processing"):
     st.session_state.user_text = ""
     st.session_state.analysis_output = ""
     st.session_state.video_processed = False
