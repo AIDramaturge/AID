@@ -14,7 +14,6 @@ import imageio_ffmpeg
 import docx2txt
 from io import BytesIO
 import time
-from pytube import YouTube 
 import yt_dlp
 
 # ---------------------- FUNKCIE NA SPRACOVANIE OBRAZKOV ----------------------
