@@ -187,11 +187,11 @@ if input_type == "TV Commercial (Video 10 - 150 sec)" and youtube_url and not up
     with tempfile.TemporaryDirectory() as tmpdir:
         try:
             ydl_opts = {
+                'format': 'best[ext=mp4]/best',
+                'merge_output_format': None,  # zakáže pokus o spojenie
                 'outtmpl': os.path.join(tmpdir, '%(title)s.%(ext)s'),
-                'format': 'bestvideo+bestaudio/best',
-                'merge_output_format': 'mp4',  # výstupný kontajner – ak dostupný
                 'quiet': True,
-            }
+}
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info_dict = ydl.extract_info(youtube_url, download=True)
                 downloaded_path = ydl.prepare_filename(info_dict)
