@@ -103,7 +103,7 @@ def analyze_text(input_type, user_text):
 
 input_type = st.radio(
     "This is an AI-powered dramaturgical analysis tool using the principles of Anglo-American dramaturgy. What are you analyzing?",
-    ["Dramatic Text (TV, Movie, Theatre)", "Advertising Concept/Script (Text)", "Advertising Storyboard (Image)", "Advertising Storyboard PDF Format (Image + Text)", "Advertising TV Spot (Video 10 - 150 sec)"],
+    ["Dramatic Text (TV, Movie, Theatre)", "Advertising Concept/Script (Text)", "Advertising Storyboard (Image)", "Advertising Storyboard PDF Format (Image + Text)", "Advertising TV Commercial (Video 10 - 150 sec)"],
     horizontal=True
 )
 
@@ -173,9 +173,9 @@ elif input_type == "Advertising Storyboard PDF Format (Image + Text)":
 
 # ---------------------- SPRACOVANIE VIDEA Z YOUTUBE A UPLOAD ----------------------
 
-if input_type == "Advertising TV Spot (Video 10 - 150 sec)":
-    st.markdown("### 🎬 Upload a TV spot, or paste Youtube URL (I understand many languages, including Slovak and Czech)")
-    uploaded_video = st.file_uploader("Upload a TV spot (MP4, MOV, etc.):", type=["mp4", "mov"])
+if input_type == "Advertising TV Commercial (Video 10 - 150 sec)":
+    st.markdown("### 🎬 Upload a TV commercial, or paste Youtube URL (I understand many languages, including Slovak and Czech)")
+    uploaded_video = st.file_uploader("Upload a TV Commercial (MP4, MOV, etc.):", type=["mp4", "mov"])
     youtube_url = st.text_input("Or paste a YouTube URL to analyze:")
 
     if youtube_url and not uploaded_video and not st.session_state.video_processed:
@@ -223,7 +223,7 @@ if input_type == "Advertising TV Spot (Video 10 - 150 sec)":
                     )
                     transcript = transcript_response.text.strip()
 
-            with st.spinner("🖼️ Extracting keyframes from video... I analyze one keyframe every 2 seconds during the spot. It takes time. Sometimes a lot of time. Stay cool."):
+            with st.spinner("🖼️ Extracting keyframes from video... I analyze one keyframe every 2 seconds during the commercial. It takes time. Sometimes a lot of time. Stay cool."):
                 vidcap = cv2.VideoCapture(video_path)
                 frame_count = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
                 fps = vidcap.get(cv2.CAP_PROP_FPS)
@@ -365,7 +365,7 @@ if st.button("❌ Clear All"):
     st.rerun()
 
 # RESET VIDEO BUTTON
-if input_type == "TV Spot (Video 15 - 150 sec)" and st.button("♻️ Reset Video Processing"):
+if input_type == "Advertising TV Commercial (Video 10 - 150 sec)" and st.button("♻️ Reset Video Processing"):
     st.session_state.user_text = ""
     st.session_state.analysis_output = ""
     st.session_state.video_processed = False
