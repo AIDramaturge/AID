@@ -228,12 +228,12 @@ if input_type == "TV Commercial (Video 10 - 150 sec)" and youtube_url and not up
                     )
                     transcript = transcript_response.text.strip()
 
-            with st.spinner("🖼️ Extracting keyframes from video... I analyze one keyframe every 2 seconds during the commercial. It takes time. Sometimes a lot of time. Stay cool."):
+            with st.spinner("🖼️ Extracting keyframes from video... I analyze one keyframe every 1 second during the commercial. It takes time. Sometimes a lot of time. Stay cool."):
                 vidcap = cv2.VideoCapture(video_path)
                 frame_count = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
                 fps = vidcap.get(cv2.CAP_PROP_FPS)
                 duration = frame_count / fps if fps > 0 else 0
-                interval = 2
+                interval = 1
 
                 frames_dir = os.path.join(tmpdir, "frames")
                 os.makedirs(frames_dir, exist_ok=True)
