@@ -174,30 +174,35 @@ elif input_type == "Advertising Storyboard PDF Format (Image + Text)":
 # ---------------------- SPRACOVANIE VIDEA Z YOUTUBE A UPLOAD ----------------------
 
 if input_type == "Advertising TV Commercial (Video 10 - 150 sec)":
-    st.markdown("### 🎬 Upload a TV commercial, or paste Youtube URL (I understand many languages, including Slovak and Czech)")
-    uploaded_video = st.file_uploader("Upload a TV Commercial (MP4, MOV, etc.):", type=["mp4", "mov"])
-    youtube_url = st.text_input("Or paste a YouTube URL to analyze:")
+    st.markdown("### 🎬 Upload a TV commercial or paste a video URL (e.g., YouTube, Vimeo, etc.). I understand multiple languages, including Slovak and Czech.")
+    uploaded_video = None
+    youtube_url = ""
 
-    if youtube_url and not uploaded_video and not st.session_state.video_processed:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            try:
-                video_path = os.path.join(tmpdir, "video.mp4")
-                ydl_opts = {
-                    'outtmpl': video_path,
-                    'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4',
-                    'merge_output_format': 'mp4',
-                    'quiet': True,
-                }
-                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                    ydl.download([youtube_url])
+if input_type == "Advertising TV Commercial (Video 10 - 150 sec)": 
+    uploaded_video = st.file_uploader("Upload a video file:", type=["mp4", "mov", "mkv", "webm", "flv", "avi"])
+    youtube_url = st.text_input("Paste a video URL to analyze:")
 
-                with open(video_path, "rb") as video_file:
-                    uploaded_video = video_file.read()
-                uploaded_video = BytesIO(uploaded_video)
-                uploaded_video.name = "video.mp4"
-                st.success("✅ YouTube video downloaded successfully. Processing now...")
-            except Exception as e:
-                st.error(f"Failed to download video: {e}")
+# Ak bol zadaný URL, ale nebol nahraný súbor, stiahni video
+if input_type == "Advertising TV Commercial (Video 10 - 150 sec)" and youtube_url and not uploaded_video and not st.session_state.video_processed: 
+    with tempfile.TemporaryDirectory() as tmpdir:
+        try:
+            ydl_opts = {
+                'outtmpl': os.path.join(tmpdir, '%(title)s.%(ext)s'),
+                'format': 'bestvideo+bestaudio/best',
+                'merge_output_format': 'mp4',  # výstupný kontajner – ak dostupný
+                'quiet': True,
+            }
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info_dict = ydl.extract_info(youtube_url, download=True)
+                downloaded_path = ydl.prepare_filename(info_dict)
+
+            with open(downloaded_path, "rb") as video_file:
+                uploaded_video = video_file.read()
+            uploaded_video = BytesIO(uploaded_video)
+            uploaded_video.name = os.path.basename(downloaded_path)
+            st.success("✅ Video downloaded successfully from URL. Processing now...")
+        except Exception as e:
+            st.error(f"Failed to download video: {e}")
 
     video_file = uploaded_video or st.session_state.get("youtube_video")
 
