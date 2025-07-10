@@ -13,6 +13,9 @@ import base64
 import imageio_ffmpeg
 import docx2txt
 from io import BytesIO
+import time
+from pytube import YouTube 
+import yt_dlp
 
 # ---------------------- FUNKCIE NA SPRACOVANIE OBRAZKOV ----------------------
 
@@ -137,10 +140,10 @@ if input_type == "Advertising Concept/Script (Text)":
 
 # Spracovanie storyboardu PDF s textom aj obrázkami
 elif input_type == "Advertising Storyboard PDF Format (Image + Text)":
-    st.markdown("### 📄 Upload your PDF storyboard (text in any language)")
+    st.markdown("### 📄 Upload your storyboard as a PDF (with text and images, any language)")
     uploaded_pdf = st.file_uploader("Upload a PDF file:", type=["pdf"])
     if uploaded_pdf is not None:
-        with st.spinner("🕐 I'm still transcribing the images and text into a text script. That may take some time."):
+        with st.spinner("🕐 I'm transcribing the images and text into a text script. That may take some time."):
             pdf_text = ""
             ocr_text = ""
             images = []
@@ -169,14 +172,41 @@ elif input_type == "Advertising Storyboard PDF Format (Image + Text)":
             st.session_state.user_text = combined_text
             st.text_area("Extracted Text + OCR", value=combined_text, height=400)
 
-elif input_type == "Advertising TV Spot (Video 10 - 150 sec)":
-    st.markdown("### 🎬 Upload a TV spot (I understand many languages, including Slovak and Czech)")
+# ---------------------- SPRACOVANIE VIDEA Z YOUTUBE A UPLOAD ----------------------
+
+if input_type == "Advertising TV Spot (Video 10 - 150 sec)":
+    st.markdown("### 🎬 Upload a TV spot, or paste Youtube URL (I understand many languages, including Slovak and Czech)")
     uploaded_video = st.file_uploader("Upload a TV spot (MP4, MOV, etc.):", type=["mp4", "mov"])
-    if uploaded_video and not st.session_state.video_processed:
+    youtube_url = st.text_input("Or paste a YouTube URL to analyze:")
+
+    if youtube_url and not uploaded_video and not st.session_state.video_processed:
         with tempfile.TemporaryDirectory() as tmpdir:
-            video_path = os.path.join(tmpdir, uploaded_video.name)
+            try:
+                video_path = os.path.join(tmpdir, "video.mp4")
+                ydl_opts = {
+                    'outtmpl': video_path,
+                    'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4',
+                    'merge_output_format': 'mp4',
+                    'quiet': True,
+                }
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    ydl.download([youtube_url])
+
+                with open(video_path, "rb") as video_file:
+                    uploaded_video = video_file.read()
+                uploaded_video = BytesIO(uploaded_video)
+                uploaded_video.name = "video.mp4"
+                st.success("✅ YouTube video downloaded successfully. Processing now...")
+            except Exception as e:
+                st.error(f"Failed to download video: {e}")
+
+    video_file = uploaded_video or st.session_state.get("youtube_video")
+
+    if video_file and not st.session_state.video_processed:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            video_path = os.path.join(tmpdir, video_file.name)
             with open(video_path, "wb") as f:
-                f.write(uploaded_video.read())
+                f.write(video_file.read())
 
             audio_path = os.path.join(tmpdir, "audio.mp3")
             ffmpeg_path = imageio_ffmpeg.get_ffmpeg_exe()
@@ -185,7 +215,6 @@ elif input_type == "Advertising TV Spot (Video 10 - 150 sec)":
                 "-vn", "-ar", "44100", "-ac", "2", "-b:a", "192k", audio_path
             ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-            # Transkripcia audia s točiacim sa kolieskom
             with st.spinner("🎹 Transcribing audio with OpenAI API..."):
                 with open(audio_path, "rb") as audio_file:
                     transcript_response = client.audio.transcriptions.create(
@@ -195,24 +224,29 @@ elif input_type == "Advertising TV Spot (Video 10 - 150 sec)":
                     )
                     transcript = transcript_response.text.strip()
 
-            # Extrakcia snímok s točiacim sa kolieskom
             with st.spinner("🖼️ Extracting keyframes from video... I analyze one keyframe every 2 seconds during the spot. It takes time. Sometimes a lot of time. Stay cool."):
                 vidcap = cv2.VideoCapture(video_path)
                 frame_count = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
                 fps = vidcap.get(cv2.CAP_PROP_FPS)
-                duration = frame_count / fps
+                duration = frame_count / fps if fps > 0 else 0
                 interval = 2
 
                 frames_dir = os.path.join(tmpdir, "frames")
                 os.makedirs(frames_dir, exist_ok=True)
 
                 visual_descriptions = []
-                for sec in range(0, int(duration), interval):
+                processing_times = []
+                total_frames = len(range(0, int(duration), interval))
+
+                for idx, sec in enumerate(range(0, int(duration), interval)):
+                    start_time = time.time()
+
                     vidcap.set(cv2.CAP_PROP_POS_MSEC, sec * 1000)
                     success, image = vidcap.read()
                     if success:
                         img_path = os.path.join(frames_dir, f"frame_{sec}.jpg")
                         cv2.imwrite(img_path, image)
+
                         with open(img_path, "rb") as img_file:
                             encoded_image = base64.b64encode(img_file.read()).decode("utf-8")
                             response = client.chat.completions.create(
@@ -227,9 +261,18 @@ elif input_type == "Advertising TV Spot (Video 10 - 150 sec)":
                             )
                             visual_descriptions.append(response.choices[0].message.content.strip())
 
+                        end_time = time.time()
+                        elapsed = end_time - start_time
+                        processing_times.append(elapsed)
+
+                        avg_time = sum(processing_times) / len(processing_times)
+                        remaining_frames = total_frames - (idx + 1)
+                        est_remaining = int(remaining_frames * avg_time)
+                        st.info(f"🖼️ Processing frame {idx + 1} of {total_frames} — ⏳ Estimated time left: {est_remaining} sec")
+
                 vidcap.release()
 
-            # Zobrazenie extrahovaných kľúčových snímok
+            # Zobrazenie extrahovaných snímok
             st.markdown("### 🖼️ Extracted Keyframes")
             cols = st.columns(3)
             col_idx = 0
@@ -241,7 +284,7 @@ elif input_type == "Advertising TV Spot (Video 10 - 150 sec)":
                         st.image(image, caption=f"Frame at {sec} sec", use_container_width=True)
                     col_idx += 1
 
-            # Spojenie vizuálnej a audio časti
+            # Výstupný skript
             full_script = ""
             for idx, desc in enumerate(visual_descriptions):
                 full_script += f"\nScene {idx + 1}:\n[Visual] {desc}\n"
@@ -249,7 +292,7 @@ elif input_type == "Advertising TV Spot (Video 10 - 150 sec)":
 
             st.session_state.user_text = full_script.strip()
             st.session_state.video_processed = True
-            st.success("✅ Script created. Ready for analysis. Would you like to see/edit it?")
+            st.success("✅ Script created. Ready for analysis. Would you like to review or edit it first? Click Show script, then Analyze. Or if you’re ready, just click Analyze.")
 
 if input_type == "Dramatic Text (TV, Movie, Theatre)":
     st.markdown("### 🎭 Paste or upload your dramatic text (in any language)")
