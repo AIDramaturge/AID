@@ -9,3 +9,4 @@ imageio[ffmpeg]
 docx2txt
 yt-dlp
 scenedetect
+# rebuild
