@@ -1,7 +1,7 @@
 streamlit
 openai>=1.0.0
 python-dotenv
-opencv-python-headless==4.5.1.48
+opencv-python-headless==4.5.5.64
 Pillow
 pytesseract
 PyMuPDF
