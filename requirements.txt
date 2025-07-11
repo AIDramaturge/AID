@@ -1,11 +1,11 @@
 streamlit
 openai>=1.0.0
 python-dotenv
-opencv-python-headless>=4.8.0
+opencv-python-headless==4.8.1.78
 Pillow
 pytesseract
 PyMuPDF
 imageio[ffmpeg]
 docx2txt
 yt-dlp
-scenedetect[opencv]
+scenedetect
