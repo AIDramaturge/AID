@@ -172,9 +172,11 @@ elif input_type == "Advertising Storyboard PDF Format (Image + Text)":
             st.session_state.user_text = combined_text
             st.text_area("Extracted Text + OCR", value=combined_text, height=400)
 
+# Spracovanie videa z uploudu alebo URL
+
 if input_type == "TV Commercial (Video 10 - 150 sec)":
-    st.markdown("### 🎬 Upload a TV commercial or paste a video URL (e.g., YouTube, Vimeo, etc.). I understand multiple languages, including Slovak and Czech.")
-    st.markdown("###### 🔔 Warning: In certain cases — such as local cultural references, minimalist acting, metaphor-heavy scenes, limited intelligible lyrics, or the presence of celebrities (which AID cannot recognize) — the transcription and interpretation of the video into a script may be inaccurate. If the resulting synopsis seems incorrect after analysis, please manually enter the correct synopsis into the text field and request a new analysis. To do this, start your prompt with: `Analyze again. Correct synopsis:....` You may write your prompt in any language. Remember: AID functions as a dramaturge, not a competition judge. It evaluates narrative principles and structural elements based on the provided content. As such, its assessments may differ — sometimes significantly — from those of human juries. It is also not immune to error. You can reduce such errors by repeating the analysis multiple times and comparing the outcomes.")
+    st.markdown("### 🎬 Upload a TV commercial or paste a video URL (e.g., YouTube, Vimeo, etc.). AID understands multiple languages, including Slovak and Czech.")
+    st.markdown("###### 🔔 Warning: In certain cases — such as local cultural references, minimalist acting, metaphor-heavy scenes, limited intelligible lyrics, or the presence of celebrities (which AID cannot recognize) — the transcription and interpretation of the video into a script may be inaccurate. If the resulting synopsis seems incorrect after analysis, please manually enter the correct synopsis into the text field and request a new analysis. To do this, start your prompt with: `Analyze again. Correct synopsis:....` You may write your prompt in any language. Remember: AID functions as a dramaturge, not a competition judge. It evaluates narrative principles and structural elements based on the provided content. As such, its assessments may differ — sometimes significantly — from those of human juries. It is also not immune to error. To reduce such errors, you can repeat the analysis several times and compare the results — or write and manually submit a deep, detailed synopsis.")
     uploaded_video = None
     youtube_url = ""
 
@@ -357,7 +359,7 @@ if st.session_state.analysis_output:
             st.text_area(
                 "AI Response:",
                 value=answer,
-                height=200,
+                height=600,
                 key="aid_response_output"
             )
         except Exception as e:
