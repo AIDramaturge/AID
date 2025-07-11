@@ -5,7 +5,6 @@ import openai
 from pathlib import Path
 from PIL import Image
 import streamlit as st
-import cv2
 import shutil
 from dotenv import load_dotenv
 import fitz  # PyMuPDF
@@ -139,6 +138,7 @@ if input_type == "Advertising Concept/Script (Text)":
         st.session_state.user_text = uploaded_text.strip()
 
 # Spracovanie storyboardu PDF s textom aj obrázkami
+
 elif input_type == "Advertising Storyboard PDF Format (Image + Text)":
     st.markdown("### 📄 Upload your storyboard as a PDF (with text and images, any language)")
     uploaded_pdf = st.file_uploader("Upload a PDF file:", type=["pdf"])
@@ -172,14 +172,13 @@ elif input_type == "Advertising Storyboard PDF Format (Image + Text)":
             st.session_state.user_text = combined_text
             st.text_area("Extracted Text + OCR", value=combined_text, height=400)
 
-# ---------------------- SPRACOVANIE VIDEA Z YOUTUBE A UPLOAD ----------------------
-
 if input_type == "TV Commercial (Video 10 - 150 sec)":
     st.markdown("### 🎬 Upload a TV commercial or paste a video URL (e.g., YouTube, Vimeo, etc.). I understand multiple languages, including Slovak and Czech.")
+    st.markdown("###### Warning: In some cases (local contexts, minimalist acting, the need for advanced understanding of metaphors, limited intelligible song lyrics, etc.), errors occur when transcribing video into a script. If, after analysis, you see that the synopsis is incorrect, in further communication with AID, enter the correct synopsis into the text field and request a new analysis. Remember that AID works as a dramaturg (i.e., it compares the principles of narration and other important elements of the work with the provided video) and not as a judge in a competition – its evaluations may differ from the evaluations of various juries, even significantly. And it can also make mistakes. You will limit these if you repeat the analysis several times and compare the individual results.")
     uploaded_video = None
     youtube_url = ""
 
-    uploaded_video = st.file_uploader("Upload a video file:", type=["mp4", "mov", "mkv", "webm", "flv", "avi"])
+    uploaded_video = st.file_uploader("Upload a video file:", type=["mp4", "mov", "mkv", "webm", "flv", "avi"], key="video_uploader")
     youtube_url = st.text_input("Paste a video URL to analyze:")
 
     # Ak bol zadaný URL, ale nebol nahraný súbor, stiahni video
@@ -230,67 +229,60 @@ if "uploaded_video" in st.session_state and st.session_state.uploaded_video and 
                 )
                 transcript = transcript_response.text.strip()
 
-        with st.spinner("🖼️ Extracting keyframes from video... I analyze one keyframe every 0.5 second during the commercial. Please wait..."):
-            vidcap = cv2.VideoCapture(video_path)
-            frame_count = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
-            fps = vidcap.get(cv2.CAP_PROP_FPS)
-            duration = frame_count / fps if fps > 0 else 0
-            interval = 0.5
-            seconds_list = [round(s * interval, 2) for s in range(0, int(duration / interval))]
-
+        with st.spinner("🖼️ Extracting keyframes every 0.5 second using ffmpeg... Please wait..."):
             frames_dir = os.path.join(tmpdir, "frames")
             os.makedirs(frames_dir, exist_ok=True)
 
-            total_frames = len(seconds_list)
+            # Extract frames every 0.5 second using ffmpeg
+            subprocess.run([
+                ffmpeg_path,
+                "-i", video_path,
+                "-vf", "fps=2",
+                os.path.join(frames_dir, "frame_%03d.jpg")
+            ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+            frame_files = sorted([f for f in os.listdir(frames_dir) if f.endswith(".jpg")])
+            total_frames = len(frame_files)
             progress_bar = st.progress(0)
             status_placeholder = st.empty()
             visual_descriptions = [None] * total_frames
 
-            def process_frame(idx_sec_tuple):
-                idx, sec = idx_sec_tuple
-                local_cap = cv2.VideoCapture(video_path)
-                local_cap.set(cv2.CAP_PROP_POS_MSEC, sec * 1000)
-                success, image = local_cap.read()
-                local_cap.release()
-                if success:
-                    img_path = os.path.join(frames_dir, f"frame_{sec}.jpg")
-                    cv2.imwrite(img_path, image)
-                    with open(img_path, "rb") as img_file:
-                        encoded_image = base64.b64encode(img_file.read()).decode("utf-8")
-                        response = client.chat.completions.create(
-                            model="gpt-4o",
-                            messages=[
-                                {"role": "user", "content": [
-                                    {"type": "text", "text": "Describe this frame in detail like a visual script or storyboard."},
-                                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{encoded_image}"}}
-                                ]}
-                            ],
-                            max_tokens=500
-                        )
-                        return idx, response.choices[0].message.content.strip()
-                return idx, None
+            def process_frame(idx_frame_tuple):
+                idx, frame_file = idx_frame_tuple
+                img_path = os.path.join(frames_dir, frame_file)
+                with open(img_path, "rb") as img_file:
+                    encoded_image = base64.b64encode(img_file.read()).decode("utf-8")
+                    response = client.chat.completions.create(
+                        model="gpt-4o",
+                        messages=[
+                            {"role": "user", "content": [
+                                {"type": "text", "text": "Describe this frame in detail like a visual script or storyboard."},
+                                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{encoded_image}"}}
+                            ]}
+                        ],
+                        max_tokens=500
+                    )
+                    return idx, response.choices[0].message.content.strip()
 
+            import concurrent.futures
             with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
-                for count, result in enumerate(executor.map(process_frame, enumerate(seconds_list))):
+                for count, result in enumerate(executor.map(process_frame, enumerate(frame_files))):
                     idx, desc = result
                     visual_descriptions[idx] = desc
                     progress_bar.progress((count + 1) / total_frames)
                     if count % 2 == 0:
                         status_placeholder.info(f"🖼️ Processed frame {count + 1} of {total_frames}")
 
-            vidcap.release()
-            cv2.destroyAllWindows()
-
         # Zobrazenie extrahovaných snímok
         st.markdown("### 🖼️ Extracted Keyframes")
         cols = st.columns(3)
         col_idx = 0
-        for sec in seconds_list:
-            frame_file = os.path.join(frames_dir, f"frame_{sec}.jpg")
-            if os.path.exists(frame_file):
-                image = Image.open(frame_file)
+        for frame_file in frame_files:
+            frame_path = os.path.join(frames_dir, frame_file)
+            if os.path.exists(frame_path):
+                image = Image.open(frame_path)
                 with cols[col_idx % 3]:
-                    st.image(image, caption=f"Frame at {sec} sec", use_container_width=True)
+                    st.image(image, caption=frame_file, use_container_width=True)
                 col_idx += 1
 
         # Výstupný skript
@@ -303,7 +295,6 @@ if "uploaded_video" in st.session_state and st.session_state.uploaded_video and 
         st.session_state.user_text = full_script.strip()
         st.session_state.video_processed = True
         st.success("✅ Script created. Ready for analysis. Would you like to review or edit it first? Click Show script, then Analyze. Or if you’re ready, just click Analyze.")
-
 
 if input_type == "Dramatic Text (TV, Movie, Theatre)":
     st.markdown("### 🎭 Paste or upload your dramatic text (in any language)")
