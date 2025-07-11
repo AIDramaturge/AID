@@ -332,10 +332,17 @@ if st.button("Analyze"):
 
 # Dodatočné otázky pre AID
 if st.session_state.analysis_output:
-    st.markdown("### 🤖 You can continue with an additional questions or tasks for AID.")
-    followup = st.text_input("Enter your question/task:")
-    if followup:
-        st.session_state.chat_history.append({"role": "user", "content": followup})
+    st.markdown("### 🤖 You can continue with additional questions or tasks for AID.")
+
+    followup = st.text_area(
+        "Enter your question/task:",
+        height=80,
+        key="followup_input",
+        placeholder="Type your question here..."
+    )
+
+    if followup.strip():
+        st.session_state.chat_history.append({"role": "user", "content": followup.strip()})
         try:
             response = client.chat.completions.create(
                 model="gpt-4-turbo",
@@ -345,8 +352,14 @@ if st.session_state.analysis_output:
             )
             answer = response.choices[0].message.content
             st.session_state.chat_history.append({"role": "assistant", "content": answer})
+
             st.markdown("### 💬 AID's Response")
-            st.write(answer)
+            st.text_area(
+                "AI Response:",
+                value=answer,
+                height=200,
+                key="aid_response_output"
+            )
         except Exception as e:
             st.error(f"Error: {e}")
 
