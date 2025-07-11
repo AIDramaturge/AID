@@ -189,7 +189,7 @@ if input_type == "TV Commercial (Video 10 - 150 sec)":
                 ydl_opts = {
                     'format': 'best[ext=mp4]/best',
                     'merge_output_format': None,
-                    'outtmpl': os.path.join(tmpdir, '%(title)s.%(ext)s'),
+                    'outtmpl': tmpdir.replace("\\", "/") + "/%(title)s.%(ext)s",
                     'quiet': True,
                 }
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
