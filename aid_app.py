@@ -360,11 +360,12 @@ if st.session_state.analysis_output:
             st.error(f"Error: {e}")
 
 # COPY BUTTON
+safe_analysis = st.session_state.get("analysis_output", "").replace("</", "<\\/")
 copy_button = f'''
     <button onclick="navigator.clipboard.writeText(document.getElementById('analysis_copy').value)">
         Copy Analysis
     </button>
-    <textarea id='analysis_copy' style='display:none;'>{st.session_state.get("analysis_output", "").replace("</", "<\\/")}
+    <textarea id='analysis_copy' style='display:none;'>{safe_analysis}</textarea>
 '''
 st.components.v1.html(copy_button, height=50)
 
