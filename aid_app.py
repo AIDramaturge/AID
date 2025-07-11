@@ -15,6 +15,7 @@ import docx2txt
 from io import BytesIO
 import time
 import yt_dlp
+import concurrent.futures
 
 # ---------------------- FUNKCIE NA SPRACOVANIE OBRAZKOV ----------------------
 
@@ -178,125 +179,131 @@ if input_type == "TV Commercial (Video 10 - 150 sec)":
     uploaded_video = None
     youtube_url = ""
 
-if input_type == "TV Commercial (Video 10 - 150 sec)": 
     uploaded_video = st.file_uploader("Upload a video file:", type=["mp4", "mov", "mkv", "webm", "flv", "avi"])
     youtube_url = st.text_input("Paste a video URL to analyze:")
 
-# Ak bol zadaný URL, ale nebol nahraný súbor, stiahni video
-if input_type == "TV Commercial (Video 10 - 150 sec)" and youtube_url and not uploaded_video and not st.session_state.video_processed: 
-    with tempfile.TemporaryDirectory() as tmpdir:
-        try:
-            ydl_opts = {
-                'format': 'best[ext=mp4]/best',
-                'merge_output_format': None,  # zakáže pokus o spojenie
-                'outtmpl': os.path.join(tmpdir, '%(title)s.%(ext)s'),
-                'quiet': True,
-}
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info_dict = ydl.extract_info(youtube_url, download=True)
-                downloaded_path = ydl.prepare_filename(info_dict)
-
-            with open(downloaded_path, "rb") as video_file:
-                uploaded_video = video_file.read()
-            uploaded_video = BytesIO(uploaded_video)
-            uploaded_video.name = os.path.basename(downloaded_path)
-            st.success("✅ Video downloaded successfully from URL. Processing now...")
-        except Exception as e:
-            st.error(f"Failed to download video: {e}")
-
-    video_file = uploaded_video or st.session_state.get("youtube_video")
-
-    if video_file and not st.session_state.video_processed:
+    # Ak bol zadaný URL, ale nebol nahraný súbor, stiahni video
+    if youtube_url and not uploaded_video and not st.session_state.video_processed: 
         with tempfile.TemporaryDirectory() as tmpdir:
-            video_path = os.path.join(tmpdir, video_file.name)
-            with open(video_path, "wb") as f:
-                f.write(video_file.read())
+            try:
+                ydl_opts = {
+                    'format': 'best[ext=mp4]/best',
+                    'merge_output_format': None,
+                    'outtmpl': os.path.join(tmpdir, '%(title)s.%(ext)s'),
+                    'quiet': True,
+                }
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    info_dict = ydl.extract_info(youtube_url, download=True)
+                    downloaded_path = ydl.prepare_filename(info_dict)
 
-            audio_path = os.path.join(tmpdir, "audio.mp3")
-            ffmpeg_path = imageio_ffmpeg.get_ffmpeg_exe()
-            subprocess.run([
-                ffmpeg_path, "-i", video_path,
-                "-vn", "-ar", "44100", "-ac", "2", "-b:a", "192k", audio_path
-            ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                with open(downloaded_path, "rb") as video_file:
+                    uploaded_video = video_file.read()
+                uploaded_video = BytesIO(uploaded_video)
+                uploaded_video.name = os.path.basename(downloaded_path)
+                st.session_state.uploaded_video = uploaded_video
+                st.success("✅ Video downloaded successfully from URL. Processing now...")
+            except Exception as e:
+                st.error(f"Failed to download video: {e}")
 
-            with st.spinner("🎹 Transcribing audio with OpenAI API..."):
-                with open(audio_path, "rb") as audio_file:
-                    transcript_response = client.audio.transcriptions.create(
-                        model="whisper-1",
-                        file=audio_file,
-                        prompt="This is a scene that may contain spoken dialogue or sung lyrics or voice over. Please transcribe all audible text accurately."
-                    )
-                    transcript = transcript_response.text.strip()
+# ---------------------- SPRACOVANIE VIDEO BLOKU ----------------------
 
-            with st.spinner("🖼️ Extracting keyframes from video... I analyze one keyframe every 1 second during the commercial. It takes time. Sometimes a lot of time. Stay cool."):
-                vidcap = cv2.VideoCapture(video_path)
-                frame_count = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
-                fps = vidcap.get(cv2.CAP_PROP_FPS)
-                duration = frame_count / fps if fps > 0 else 0
-                interval = 1
+if "uploaded_video" in st.session_state and st.session_state.uploaded_video and not st.session_state.video_processed:
+    with tempfile.TemporaryDirectory() as tmpdir:
+        uploaded_video = st.session_state.uploaded_video
+        video_path = os.path.join(tmpdir, uploaded_video.name)
+        with open(video_path, "wb") as f:
+            f.write(uploaded_video.read())
 
-                frames_dir = os.path.join(tmpdir, "frames")
-                os.makedirs(frames_dir, exist_ok=True)
+        audio_path = os.path.join(tmpdir, "audio.mp3")
+        ffmpeg_path = imageio_ffmpeg.get_ffmpeg_exe()
+        subprocess.run([
+            ffmpeg_path, "-i", video_path,
+            "-vn", "-ar", "44100", "-ac", "2", "-b:a", "192k", audio_path
+        ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-                visual_descriptions = []
-                processing_times = []
-                total_frames = len(range(0, int(duration), interval))
+        with st.spinner("🎹 Transcribing audio with OpenAI API..."):
+            with open(audio_path, "rb") as audio_file:
+                transcript_response = client.audio.transcriptions.create(
+                    model="whisper-1",
+                    file=audio_file,
+                    prompt="This is a scene that may contain spoken dialogue or sung lyrics or voice over. Please transcribe all audible text accurately."
+                )
+                transcript = transcript_response.text.strip()
 
-                for idx, sec in enumerate(range(0, int(duration), interval)):
-                    start_time = time.time()
+        with st.spinner("🖼️ Extracting keyframes from video... I analyze one keyframe every 0.5 second during the commercial. Please wait..."):
+            vidcap = cv2.VideoCapture(video_path)
+            frame_count = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
+            fps = vidcap.get(cv2.CAP_PROP_FPS)
+            duration = frame_count / fps if fps > 0 else 0
+            interval = 0.5
+            seconds_list = [round(s * interval, 2) for s in range(0, int(duration / interval))]
 
-                    vidcap.set(cv2.CAP_PROP_POS_MSEC, sec * 1000)
-                    success, image = vidcap.read()
-                    if success:
-                        img_path = os.path.join(frames_dir, f"frame_{sec}.jpg")
-                        cv2.imwrite(img_path, image)
+            frames_dir = os.path.join(tmpdir, "frames")
+            os.makedirs(frames_dir, exist_ok=True)
 
-                        with open(img_path, "rb") as img_file:
-                            encoded_image = base64.b64encode(img_file.read()).decode("utf-8")
-                            response = client.chat.completions.create(
-                                model="gpt-4o",
-                                messages=[
-                                    {"role": "user", "content": [
-                                        {"type": "text", "text": "Describe this frame in detail like a visual script or storyboard."},
-                                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{encoded_image}"}}
-                                    ]}
-                                ],
-                                max_tokens=500
-                            )
-                            visual_descriptions.append(response.choices[0].message.content.strip())
+            total_frames = len(seconds_list)
+            progress_bar = st.progress(0)
+            status_placeholder = st.empty()
+            visual_descriptions = [None] * total_frames
 
-                        end_time = time.time()
-                        elapsed = end_time - start_time
-                        processing_times.append(elapsed)
+            def process_frame(idx_sec_tuple):
+                idx, sec = idx_sec_tuple
+                local_cap = cv2.VideoCapture(video_path)
+                local_cap.set(cv2.CAP_PROP_POS_MSEC, sec * 1000)
+                success, image = local_cap.read()
+                local_cap.release()
+                if success:
+                    img_path = os.path.join(frames_dir, f"frame_{sec}.jpg")
+                    cv2.imwrite(img_path, image)
+                    with open(img_path, "rb") as img_file:
+                        encoded_image = base64.b64encode(img_file.read()).decode("utf-8")
+                        response = client.chat.completions.create(
+                            model="gpt-4o",
+                            messages=[
+                                {"role": "user", "content": [
+                                    {"type": "text", "text": "Describe this frame in detail like a visual script or storyboard."},
+                                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{encoded_image}"}}
+                                ]}
+                            ],
+                            max_tokens=500
+                        )
+                        return idx, response.choices[0].message.content.strip()
+                return idx, None
 
-                        avg_time = sum(processing_times) / len(processing_times)
-                        remaining_frames = total_frames - (idx + 1)
-                        est_remaining = int(remaining_frames * avg_time)
-                        st.info(f"🖼️ Processing frame {idx + 1} of {total_frames} — ⏳ Estimated time left: {est_remaining} sec")
+            with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+                for count, result in enumerate(executor.map(process_frame, enumerate(seconds_list))):
+                    idx, desc = result
+                    visual_descriptions[idx] = desc
+                    progress_bar.progress((count + 1) / total_frames)
+                    if count % 2 == 0:
+                        status_placeholder.info(f"🖼️ Processed frame {count + 1} of {total_frames}")
 
-                vidcap.release()
+            vidcap.release()
+            cv2.destroyAllWindows()
 
-            # Zobrazenie extrahovaných snímok
-            st.markdown("### 🖼️ Extracted Keyframes")
-            cols = st.columns(3)
-            col_idx = 0
-            for sec in range(0, int(duration), interval):
-                frame_file = os.path.join(frames_dir, f"frame_{sec}.jpg")
-                if os.path.exists(frame_file):
-                    image = Image.open(frame_file)
-                    with cols[col_idx % 3]:
-                        st.image(image, caption=f"Frame at {sec} sec", use_container_width=True)
-                    col_idx += 1
+        # Zobrazenie extrahovaných snímok
+        st.markdown("### 🖼️ Extracted Keyframes")
+        cols = st.columns(3)
+        col_idx = 0
+        for sec in seconds_list:
+            frame_file = os.path.join(frames_dir, f"frame_{sec}.jpg")
+            if os.path.exists(frame_file):
+                image = Image.open(frame_file)
+                with cols[col_idx % 3]:
+                    st.image(image, caption=f"Frame at {sec} sec", use_container_width=True)
+                col_idx += 1
 
-            # Výstupný skript
-            full_script = ""
-            for idx, desc in enumerate(visual_descriptions):
+        # Výstupný skript
+        full_script = ""
+        for idx, desc in enumerate(visual_descriptions):
+            if desc:
                 full_script += f"\nScene {idx + 1}:\n[Visual] {desc}\n"
-            full_script += f"\n[Transcripted Audio]\n{transcript}"
+        full_script += f"\n[Transcripted Audio]\n{transcript}"
 
-            st.session_state.user_text = full_script.strip()
-            st.session_state.video_processed = True
-            st.success("✅ Script created. Ready for analysis. Would you like to review or edit it first? Click Show script, then Analyze. Or if you’re ready, just click Analyze.")
+        st.session_state.user_text = full_script.strip()
+        st.session_state.video_processed = True
+        st.success("✅ Script created. Ready for analysis. Would you like to review or edit it first? Click Show script, then Analyze. Or if you’re ready, just click Analyze.")
+
 
 if input_type == "Dramatic Text (TV, Movie, Theatre)":
     st.markdown("### 🎭 Paste or upload your dramatic text (in any language)")
