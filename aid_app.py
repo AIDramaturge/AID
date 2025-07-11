@@ -359,7 +359,7 @@ if st.session_state.analysis_output:
             st.text_area(
                 "AI Response:",
                 value=answer,
-                height=600,
+                height=800,
                 key="aid_response_output"
             )
         except Exception as e:
