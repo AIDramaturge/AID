@@ -15,6 +15,7 @@ from io import BytesIO
 import time
 import yt_dlp
 import concurrent.futures
+from concurrent.futures import ThreadPoolExecutor
 
 # ---------------------- FUNKCIE NA SPRACOVANIE OBRAZKOV ----------------------
 
@@ -137,64 +138,78 @@ if input_type == "Advertising Concept/Script (Text)":
         uploaded_text = uploaded_txt.read().decode("utf-8")
         st.session_state.user_text = uploaded_text.strip()
 
-# Spracovanie storyboardu PDF s textom aj obrázkami
 
 elif input_type == "Advertising Storyboard PDF Format (Image + Text)":
     st.markdown("### 📄 Upload your storyboard as a PDF (with text and images, any language)")
     uploaded_pdf = st.file_uploader("Upload a PDF file:", type=["pdf"])
+
     if uploaded_pdf is not None:
-        with st.spinner("🕐 I'm transcribing the images and text into a text script. That may take some time."):
-            pdf_text = ""
-            ocr_text = ""
-            images = []
+        if "storyboard_processed_text" not in st.session_state or st.session_state.get("storyboard_file_name") != uploaded_pdf.name:
+            with st.spinner("🕐 Transcribing the images and text into a text script. That may take a minute or two, depending on number of images..."):
+                pdf_text = ""
+                image_tasks = []
 
-            with fitz.open(stream=uploaded_pdf.read(), filetype="pdf") as doc:
-                for page_number, page in enumerate(doc):
-                # Extrahuj text
-                    pdf_text += page.get_text()
+                # Otvor PDF a priprav úlohy pre paralelný OCR
+                with fitz.open(stream=uploaded_pdf.read(), filetype="pdf") as doc:
+                    for page_number, page in enumerate(doc):
+                        pdf_text += page.get_text()
 
-                # Extrahuj obrázky
-                    image_list = page.get_images(full=True)
-                    for img_index, img in enumerate(image_list):
-                        xref = img[0]
-                        base_image = doc.extract_image(xref)
-                        image_bytes = base_image["image"]
+                        image_list = page.get_images(full=True)
+                        for img_index, img in enumerate(image_list):
+                            xref = img[0]
+                            base_image = doc.extract_image(xref)
+                            image_bytes = base_image["image"]
+                            image_tasks.append((image_bytes, page_number, img_index))
 
-                        try:
-                            image = Image.open(BytesIO(image_bytes)).convert("RGB")
-                            extracted_text = extract_visual_description_with_openai(image)
-                        except Exception as e:
-                            extracted_text = f"OCR Error on Page {page_number + 1}, Image {img_index + 1} ---\n{e}"
+                # Funkcia na spracovanie 1 obrázku
+                def process_image_ocr(image_bytes, page_number, img_index):
+                    try:
+                        image = Image.open(BytesIO(image_bytes)).convert("RGB")
+                        extracted_text = extract_visual_description_with_openai(image)
+                    except Exception as e:
+                        extracted_text = f"OCR Error on Page {page_number + 1}, Image {img_index + 1} ---\n{e}"
+                    return f"\n--- OCR from Page {page_number + 1}, Image {img_index + 1} ---\n{extracted_text}"
 
-                        ocr_text += f"\n--- OCR from Page {page_number + 1}, Image {img_index + 1} ---\n{extracted_text}"
+                # Paralelné spracovanie
+                with ThreadPoolExecutor(max_workers=4) as executor:
+                    ocr_chunks = list(executor.map(lambda args: process_image_ocr(*args), image_tasks))
 
-            combined_text = (pdf_text.strip() + "\n\n" + ocr_text.strip()).strip()
-            st.session_state.user_text = combined_text
-            st.text_area("Extracted Text + OCR", value=combined_text, height=400)
+                ocr_text = "\n".join(ocr_chunks)
+                combined_text = (pdf_text.strip() + "\n\n" + ocr_text.strip()).strip()
+
+                # Uloženie do session pre cache
+                st.session_state.storyboard_processed_text = combined_text
+                st.session_state.storyboard_file_name = uploaded_pdf.name
+        else:
+            combined_text = st.session_state.storyboard_processed_text
+
+        # Výstup
+        st.session_state.user_text = combined_text
+        st.text_area("📝 Extracted Text + OCR", value=combined_text, height=400)
 
 # Spracovanie videa z uploudu alebo URL
 
 if input_type == "TV Commercial (Video 10 - 150 sec)":
     st.markdown("### 🎬 Upload a video file or paste a video URL (e.g., YouTube, Vimeo). AID understands multiple languages, including Slovak and Czech.")
     st.markdown("###### 🔔 Warning: In certain cases — such as local cultural references, minimalist acting, metaphor-heavy scenes, limited intelligible lyrics, or the presence of celebrities (which AID cannot recognize) — the transcription and interpretation of the video into a script may be inaccurate. If the resulting synopsis seems incorrect after analysis, please manually enter the correct one into the text field (labeled “Continue...”) and request a new analysis. To do this, start your prompt with: `Analyze again. Correct synopsis:....` You may write synopsis in any language. 🧠 Remember: AID functions as a dramaturge, not a competition judge. It evaluates narrative principles and structural elements based on the provided content. As such, its assessments may differ — sometimes significantly — from those of human juries. It is also not immune to error. To reduce such errors, you can repeat the analysis several times and compare the results — or write and manually submit a deep, detailed synopsis.")
-    uploaded_video = None
-    youtube_url = ""
 
     uploaded_video = st.file_uploader("Upload a video file:", type=["mp4", "mov", "mkv", "webm", "flv", "avi"], key="video_uploader")
     youtube_url = st.text_input("Paste a video URL to analyze:")
 
     if uploaded_video is not None:
-        st.session_state.uploaded_video = uploaded_video
-        st.session_state.video_processed = False
+        if "uploaded_video" not in st.session_state or uploaded_video != st.session_state.uploaded_video:
+            st.session_state.uploaded_video = uploaded_video
+            st.session_state.video_processed = False
+            st.session_state.script_created = False
 
-    # Ak bol zadaný URL, ale nebol nahraný súbor, stiahni video
-    if youtube_url and not uploaded_video and not st.session_state.video_processed: 
+    # Ak bol zadaný URL, ale nebol nahratý súbor, stiahni video
+    if youtube_url and not st.session_state.get("uploaded_video") and not st.session_state.get("video_processed", False):
         with tempfile.TemporaryDirectory() as tmpdir:
             try:
                 ydl_opts = {
                     'format': 'best[ext=mp4]/best',
                     'merge_output_format': None,
-                    'outtmpl': tmpdir.replace("\\", "/") + "/%(title)s.%(ext)s",
+                    'outtmpl': os.path.join(tmpdir, "%(title)s.%(ext)s"),
                     'quiet': True,
                 }
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -202,17 +217,25 @@ if input_type == "TV Commercial (Video 10 - 150 sec)":
                     downloaded_path = ydl.prepare_filename(info_dict)
 
                 with open(downloaded_path, "rb") as video_file:
-                    uploaded_video = video_file.read()
-                uploaded_video = BytesIO(uploaded_video)
-                uploaded_video.name = os.path.basename(downloaded_path)
-                st.session_state.uploaded_video = uploaded_video
+                    uploaded_bytes = video_file.read()
+                video_io = BytesIO(uploaded_bytes)
+                video_io.name = os.path.basename(downloaded_path)
+
+                st.session_state.uploaded_video = video_io
+                st.session_state.video_processed = False
+                st.session_state.script_created = False
                 st.success("✅ Video downloaded successfully from URL. Processing now...")
             except Exception as e:
-                st.error(f"Failed to download video: {e}")
+                st.error(f"❌ Failed to download video: {e}")
 
 # ---------------------- SPRACOVANIE VIDEO BLOKU ----------------------
 
-if "uploaded_video" in st.session_state and st.session_state.uploaded_video and not st.session_state.video_processed:
+if (
+    "uploaded_video" in st.session_state and
+    st.session_state.uploaded_video and
+    not st.session_state.get("video_processed", False) and
+    not st.session_state.get("script_created", False)
+):
     with tempfile.TemporaryDirectory() as tmpdir:
         uploaded_video = st.session_state.uploaded_video
         video_path = os.path.join(tmpdir, uploaded_video.name)
@@ -301,6 +324,7 @@ if "uploaded_video" in st.session_state and st.session_state.uploaded_video and 
         st.session_state.user_text = full_script.strip()
         st.session_state.video_processed = True
         st.success("✅ Script created. Ready for analysis. Would you like to review or edit it first? Click Show script, then Analyze. Or if you’re ready, just click Analyze.")
+        st.session_state.script_created = True
 
 if input_type == "Dramatic Text (TV, Movie, Theatre)":
     st.markdown("### 🎭 Paste or upload your dramatic text (in any language)")
