@@ -317,11 +317,11 @@ def analyze_text(input_type: str, user_text: str) -> str:
 input_type = st.radio(
    LANGUAGES[lang]["analysis_type_label"],
    [
-       "Dramatic Text (TV, Movie, Theatre)",
        "Advertising Concept/Script (Text)",
        "Advertising Storyboard (Image)",
        "Advertising Storyboard PDF Format (Image + Text)",
-       "TV Commercial (Video 10 - 150 sec)"
+       "TV Commercial (Video 10 - 150 sec)",
+       "Dramatic Text (TV, Movie, Theatre)"
    ],
    horizontal=True,
    key="input_type_selector"
