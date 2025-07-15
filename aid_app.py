@@ -408,7 +408,11 @@ if st.button("❌ Clear All"):
     st.session_state.user_text = ""
     st.session_state.analysis_output = ""
     st.session_state.video_processed = False
+    st.session_state.script_created = False
     st.session_state.chat_history = []
+    st.session_state.uploaded_video = None
+    st.session_state.storyboard_processed_text = ""
+    st.session_state.storyboard_file_name = ""
     st.rerun()
 
 # RESET VIDEO BUTTON
