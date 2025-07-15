@@ -90,7 +90,7 @@ LANGUAGES = {
     "sk": {
         "title": "AID - Artificial Intelligence Dramaturge",
         "select_language": "Vyberte jazyk",
-        "analysis_type_label": "Toto je nástroj na dramaturgickú analýzu poháňaný umelou inteligenciou, ktorý využíva princípy anglo-americkej dramaturgie. Čo chcete analyzovať?",
+        "analysis_type_label": "AID je nástroj na dramaturgickú analýzu poháňaný umelou inteligenciou, ktorý využíva princípy anglo-americkej dramaturgie. Čo chcete analyzovať?",
         "upload_images": "Nahrajte obrázky storyboardu:",
         "upload_images here": "Tu nahrajte obrázky",
         "upload_text": "Vložte alebo nahrajte váš námet/ideu, alebo scenár (v akomkoľvek jazyku)",
@@ -132,7 +132,7 @@ LANGUAGES = {
     "cs": {
   "title": "AID - Artificial Intelligence Dramaturge",
   "select_language": "Zvolte jazyk",
-  "analysis_type_label": "Toto je nástroj pro dramaturgickou analýzu poháněný umělou inteligencí, který využívá principy angloamerické dramaturgie. Co si přejete analyzovat?",
+  "analysis_type_label": "AID je nástroj pro dramaturgickou analýzu poháněný umělou inteligencí, který využívá principy angloamerické dramaturgie. Co si přejete analyzovat?",
   "upload_images": "Nahrajte obrázky storyboardu:",
   "upload_images here": "Nahrajte obrázky zde",
   "upload_text": "Vložte nebo nahrajte svůj námět, nápad nebo scénář (v jakémkoli jazyce)",
