@@ -128,7 +128,49 @@ LANGUAGES = {
         "paste_dramatic_text": "Vložte váš dramatický text tu:",
         "upload_dramatic_text": "Alebo nahrajte súbor s dramatickým textom (TXT, DOCX, PDF):",
         "error_unsupported_format": "Nepodporovaný formát súboru. Nahrajte prosím .txt, .docx alebo .pdf."
-    }
+    },
+    "cs": {
+  "title": "AID - Artificial Intelligence Dramaturge",
+  "select_language": "Zvolte jazyk",
+  "analysis_type_label": "Toto je nástroj pro dramaturgickou analýzu poháněný umělou inteligencí, který využívá principy angloamerické dramaturgie. Co si přejete analyzovat?",
+  "upload_images": "Nahrajte obrázky storyboardu:",
+  "upload_images here": "Nahrajte obrázky zde",
+  "upload_text": "Vložte nebo nahrajte svůj námět, nápad nebo scénář (v jakémkoli jazyce)",
+  "paste_text": "Vložte text",
+  "upload_text file": "Nahrajte textový soubor",
+  "upload_pdf": "Nahrajte storyboard ve formátu PDF (s textem a obrázky, v jakémkoli jazyce)",
+  "upload_pdf here": "Nahrajte soubor PDF",
+  "upload_video": "Nahrajte video soubor nebo vložte URL adresu videa (např. z YouTube nebo Vimeo). AID rozumí mnoha jazykům.",
+  "only upload_video": "Nahrajte video soubor",
+  "video_url": "Vložte URL adresu videa k analýze:",
+  "video_warning": "Upozornění: V některých případech — jako je lokální kulturní kontext, minimalistické herectví, scény se složitými metaforami, obtížně srozumitelný zpěv nebo přítomnost celebrit (které AID nedokáže rozpoznat) — může být přepis a interpretace videa do scénáře nepřesná. Pokud se výsledná synopse po analýze jeví jako nesprávná, napište prosím správnou synopsi ručně do textového pole (označeného jako „Pokračovat...“) a požádejte o novou analýzu. Začněte svou žádost slovy: `Analyzuj znovu. Správná synopse:....` Synopsi můžete napsat v jakémkoli jazyce. 🧠 Pamatujte: AID funguje jako dramaturg, nikoli jako porotce soutěže. Hodnotí narativní principy a strukturální prvky na základě poskytnutého obsahu. Jeho hodnocení se proto může — někdy výrazně — lišit od hodnocení porot tvořených lidmi. Není ani imunní vůči chybám. Pro snížení rizika chyb můžete analýzu zopakovat vícekrát a porovnat výsledky — nebo napsat a ručně odeslat podrobnou synopsi.",
+  "error_file_size": "Soubor {name} je příliš velký ({size:.2f} MB). Maximální povolená velikost je {max_size} MB.",
+  "error_invalid_url": "Neplatná URL adresa videa. Zadejte prosím platnou adresu YouTube nebo Vimeo.",
+  "error_no_content": "Zadejte nebo nahrajte obsah k analýze.",
+  "error_api_key": "Chybí OpenAI API klíč. Nastavte jej prosím v souboru .env.",
+  "error_pdf": "Nepodařilo se zpracovat PDF: {error}",
+  "error_video_download": "Nepodařilo se stáhnout video: {error}",
+  "success_video_download": "Video bylo úspěšně staženo z URL. Pracuje se na jeho zpracování...",
+  "success_script_created": "Scénář byl vytvořen. Je připraven k analýze. Pokud si jej přejete nejprve zkontrolovat nebo upravit, klikněte na Zobrazit scénář, poté na Uložit změny a nakonec na Analyzovat. Pokud úpravy nechcete provádět, klikněte rovnou na Analyzovat.",
+  "success_changes_saved": "Změny byly uloženy.",
+  "processing_images": "Zpracovává se {count} obrázků. Odhadovaný čas: ~{time} sekund...",
+  "processing_completed": "Zpracování dokončeno za {time:.2f} sekund.",
+  "show_script": "Zobrazit scénář",
+  "save_changes": "Uložit změny",
+  "analyze": "Analyzovat",
+  "Send Follow-up Question": "Odeslat doplňující otázku",
+  "clear_all": "Vymazat vše",
+  "reset_video": "Resetovat zpracování videa",
+  "continue_prompt": "Pokračujte. Přidejte další otázky nebo úkoly pro AID podle potřeby.",
+  "enter_question": "Zadejte svou otázku nebo úkol:",
+  "extracted_description": "Extrahovaný popis a text z obrázků:",
+  "extracted_text_ocr": "Extrahovaný text + OCR",
+  "analysis_result": "Výsledek analýzy",
+  "aid_response": "Odpověď AID",
+  "paste_dramatic_text": "Vložte svůj dramatický text zde:",
+  "upload_dramatic_text": "Nebo nahrajte soubor s dramatickým textem (TXT, DOCX, PDF):",
+  "error_unsupported_format": "Nepodporovaný formát souboru. Nahrajte prosím .txt, .docx nebo .pdf."
+}
 }
 # Inicializuj jazyk ak ešte nie je
 if "aid_selected_language" not in st.session_state:
@@ -221,10 +263,10 @@ def extract_visual_description_with_openai(image: Image.Image) -> str:
 # Výber jazyka
 lang = st.selectbox(
    LANGUAGES[st.session_state.aid_selected_language]["select_language"],
-   options=["sk", "en"],
-   format_func=lambda x: "Slovenčina" if x == "sk" else "English",
+   options=["sk", "en", "cs"],
+   format_func=lambda x: {"sk": "Slovenčina", "en": "English", "cs": "Čeština"}.get(x, x),
    key="language_selector",
-   index=0 if st.session_state.aid_selected_language == "sk" else 1
+   index=["sk", "en", "cs"].index(st.session_state.aid_selected_language)
 )
 if lang != st.session_state.aid_selected_language:
    st.session_state.aid_selected_language = lang
