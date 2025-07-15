@@ -50,9 +50,14 @@ LANGUAGES = {
         "select_language": "Select Language",
         "analysis_type_label": "This is an AI-powered dramaturgical analysis tool using the principles of Anglo-American dramaturgy. What are you analyzing?",
         "upload_images": "Upload storyboard image(s):",
+        "upload_images here": "Upload images here",
         "upload_text": "Paste or upload your concept or script (in any language)",
+        "paste_text": "Paste text",
+        "upload_text file": "Upload text file",
         "upload_pdf": "Upload your storyboard as a PDF (with text and images, any language)",
+        "upload_pdf here": "Upload PDF file",
         "upload_video": "Upload a video file or paste a video URL (e.g., YouTube, vimeo). AID uderstands multiple languages.",
+        "only upload_video": "Upload a video file",
         "video_url": "Paste a video URL to analyze:",
         "video_warning": "Warning: In certain cases — such as local cultural references, minimalist acting, metaphor-heavy scenes, limited intelligible lyrics, or the presence of celebrities (which AID cannot recognize) — the transcription and interpretation of the video into a script may be inaccurate. If the resulting synopsis seems incorrect after analysis, please manually enter the correct one into the text field (labeled \"Continue...\") and request a new analysis. To do this, start your prompt with: `Analyze again. Correct synopsis:....` You may write synopsis in any language. 🧠 Remember: AID functions as a dramaturge, not a competition judge. It evaluates narrative principles and structural elements based on the provided content. As such, its assessments may differ — sometimes significantly — from those of human juries. It is also not immune to error. To reduce such errors, you can repeat the analysis several times and compare the results — or write and manually submit a deep, detailed synopsis.",
         "error_file_size": "File {name} is too large ({size:.2f} MB). Maximum allowed size is {max_size} MB.",
@@ -87,9 +92,14 @@ LANGUAGES = {
         "select_language": "Vyberte jazyk",
         "analysis_type_label": "Toto je nástroj na dramaturgickú analýzu poháňaný umelou inteligenciou, ktorý využíva princípy anglo-americkej dramaturgie. Čo chcete analyzovať?",
         "upload_images": "Nahrajte obrázky storyboardu:",
+        "upload_images here": "Tu nahrajte obrázky",
         "upload_text": "Vložte alebo nahrajte váš námet/ideu, alebo scenár (v akomkoľvek jazyku)",
+        "paste_text": "Vložte text",
+        "upload_text file": "Nahrajte textový súbor",
         "upload_pdf": "Nahrajte váš storyboard vo formáte PDF (s textom a obrázkami, v akomkoľvek jazyku)",
+        "upload_pdf here": "Nahrajte PDF súbor",
         "upload_video": "Nahrajte video súbor alebo vložte URL adresu videa (napr. z YouTube, Vimeo). AID rozumie mnohým jazykom.",
+        "only upload_video": "Nahrajte video súbor",
         "video_url": "Vložte URL adresu videa na analýzu:",
         "video_warning": "Upozornenie: V niektorých prípadoch — ako je lokálny kultúrny kontext, minimalistické herectvo, scény so zložitými metaforami, obmedzene zrozumiteľný text piesní alebo prítomnosť celebrít (ktoré AID nedokáže rozpoznať) — môže byť transkripcia a interpretácia videa do scenára nepresná. Ak sa výsledná synopsa po analýze zdá nesprávna, napíšte prosím správnu synopsu manuálne do textového poľa (označeného ako „Pokračovať...“) a požiadajte o novú analýzu. Začnite svoju požiadavku slovami: `Analyzuj znova. Správna synopsa:....` Synopsu môžete napísať v akomkoľvek jazyku. 🧠 Pamätajte: AID funguje ako dramaturg, nie ako porotca súťaže. Hodnotí naratívne princípy a štrukturálne prvky na základe poskytnutého obsahu. Jeho hodnotenia sa preto môžu — niekedy výrazne — líšiť od hodnotení porôt, v ktorých hodnotia ľudia. Nie je ani imúnny voči chybám. Na zníženie rizika chýb môžete analýzu zopakovať viackrát a porovnať výsledky — alebo napísať a manuálne odoslať podrobnú synopsu.",
         "error_file_size": "Súbor {name} je príliš veľký ({size:.2f} MB). Maximálna povolená veľkosť je {max_size} MB.",
@@ -122,7 +132,7 @@ LANGUAGES = {
 }
 # Inicializuj jazyk ak ešte nie je
 if "aid_selected_language" not in st.session_state:
-   st.session_state.aid_selected_language = "sk"
+   st.session_state.aid_selected_language = "en"
 
 # Použij aktuálny jazyk
 lang = st.session_state.aid_selected_language
@@ -231,25 +241,31 @@ with col2:
 play_prompt = Path("aid_prompt_play.txt").read_text(encoding="utf-8")
 storyboard_prompt = Path("aid_prompt_storyboard.txt").read_text(encoding="utf-8")
 
-def get_prompt(input_type: str, user_text: str) -> str:
-   """Generates a prompt based on input type and user text."""
-   if input_type == "Dramatic Text (TV, Movie, Theatre)":
-       return f"{play_prompt.strip()}\n\nTEXT:\n{user_text.strip()}"
-   else:
-       return f"{storyboard_prompt.strip()}\n\nTEXT:\n{user_text.strip()}"
+def get_prompt(input_type: str, user_text: str, lang: str = "en") -> str:
+    """Generates a prompt based on input type and user text, with language control."""
+    if input_type == "Dramatic Text (TV, Movie, Theatre)":
+        base_prompt = play_prompt.strip()
+    else:
+        base_prompt = storyboard_prompt.strip()
+
+    language_instruction = ""
+    if lang == "sk":
+        language_instruction = "Odpovedz prosím výhradne v slovenčine.\n"
+
+    return f"{language_instruction}{base_prompt}\n\nTEXT:\n{user_text.strip()}"
 
 def analyze_text(input_type: str, user_text: str) -> str:
    """Analyzes text using OpenAI's GPT-4-turbo model."""
-   full_prompt = get_prompt(input_type, user_text)
+   full_prompt = get_prompt(input_type, user_text, lang)
    try:
        st.session_state.aid_chat_history = [
            {"role": "user", "content": full_prompt}
        ]
        response = client.chat.completions.create(
-           model="gpt-4-turbo",
+           model="gpt-4o",
            messages=st.session_state.aid_chat_history,
            temperature=0.4,
-           max_tokens=4096
+           max_tokens=8192
        )
        return response.choices[0].message.content
    except Exception as e:
@@ -279,7 +295,7 @@ if input_type == "Advertising Storyboard (Image)":
    uploader_key = f"image_uploader_{st.session_state.aid_image_processing_key}"
    
    uploaded_files = st.file_uploader(
-       LANGUAGES[lang]["upload_images"],
+       LANGUAGES[lang]["upload_images here"],
        type=["png", "jpg", "jpeg"],
        accept_multiple_files=True,
        key=uploader_key
@@ -315,9 +331,9 @@ if input_type == "Advertising Storyboard (Image)":
 # ---------------------- SPRACOVANIE TEXTU ----------------------
 elif input_type == "Advertising Concept/Script (Text)":
    st.markdown(f"### ✍️ {LANGUAGES[lang]['upload_text']}")
-   st.session_state.aid_user_text = st.text_area(LANGUAGES[lang]["upload_text"], height=300, key="text_input")
+   st.session_state.aid_user_text = st.text_area(LANGUAGES[lang]["paste_text"], height=300, key="text_input")
 
-   uploaded_txt = st.file_uploader(LANGUAGES[lang]["upload_text"], type=["txt"])
+   uploaded_txt = st.file_uploader(LANGUAGES[lang]["upload_text file"], type=["txt"])
    if uploaded_txt is not None:
        if not check_file_size(uploaded_txt):
            st.stop()
@@ -327,7 +343,7 @@ elif input_type == "Advertising Concept/Script (Text)":
 # ---------------------- SPRACOVANIE PDF ----------------------
 elif input_type == "Advertising Storyboard PDF Format (Image + Text)":
    st.markdown(f"### 📄 {LANGUAGES[lang]['upload_pdf']}")
-   uploaded_pdf = st.file_uploader(LANGUAGES[lang]["upload_pdf"], type=["pdf"])
+   uploaded_pdf = st.file_uploader(LANGUAGES[lang]["upload_pdf here"], type=["pdf"])
 
    if uploaded_pdf is not None:
        if not check_file_size(uploaded_pdf):
@@ -390,11 +406,11 @@ elif input_type == "TV Commercial (Video 10 - 150 sec)":
    st.markdown(f"### 🎬 {LANGUAGES[lang]['upload_video']}")
    st.markdown(f"###### 🔔 {LANGUAGES[lang]['video_warning']}")
 
-   uploaded_video = st.file_uploader(LANGUAGES[lang]["upload_video"], type=["mp4", "mov", "mkv", "webm", "flv", "avi"], key="video_uploader")
+   uploaded_video = st.file_uploader(LANGUAGES[lang]["only upload_video"], type=["mp4", "mov", "mkv", "webm", "flv", "avi"], key="video_uploader")
    youtube_url = st.text_input(LANGUAGES[lang]["video_url"])
 
    if uploaded_video is not None:
-       if not check_file_size(uploaded_video):
+       if not check_file_size(uploaded_video, max_size_mb=200):
            st.stop()
        if "aid_uploaded_video" not in st.session_state or uploaded_video != st.session_state.aid_uploaded_video:
            st.session_state.aid_uploaded_video = uploaded_video
@@ -459,7 +475,11 @@ elif input_type == "TV Commercial (Video 10 - 150 sec)":
                        transcript_response = client.audio.transcriptions.create(
                            model="whisper-1",
                            file=audio_file,
-                           prompt="This is a scene that may contain spoken dialogue or sung lyrics or voice over. Please transcribe all audible text accurately."
+                           prompt = (
+    "Toto je scéna, ktorá môže obsahovať hovorený dialóg, spev alebo voice-over. Prosím, presne prepíšte všetok počuteľný text."
+    if lang == "sk" else
+    "This is a scene that may contain spoken dialogue or sung lyrics or voice over. Please transcribe all audible text accurately."
+)
                        )
                        transcript = transcript_response.text.strip()
 
@@ -495,7 +515,7 @@ elif input_type == "TV Commercial (Video 10 - 150 sec)":
                                model="gpt-4o",
                                messages=[
                                    {"role": "user", "content": [
-                                       {"type": "text", "text": "Describe this frame in detail like a visual script or storyboard."},
+                                       {"type": "text", "text": "Opíš tento záber detailne ako vizuálny scenár alebo storyboard." if lang == "sk" else "Describe this frame in detail like a visual script or storyboard."},
                                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{encoded_image}"}}
                                    ]}
                                ],
@@ -600,15 +620,15 @@ if st.session_state.aid_analysis_output:
        placeholder=LANGUAGES[lang]["enter_question"]
    )
 
-   if st.button("Send Follow-up Question"):
+   if st.button(LANGUAGES[lang]["Send Follow-up Question"]):
        if followup.strip():
            st.session_state.aid_chat_history.append({"role": "user", "content": followup.strip()})
            try:
                response = client.chat.completions.create(
-                   model="gpt-4-turbo",
+                   model="gpt-4o",
                    messages=st.session_state.aid_chat_history,
                    temperature=0.4,
-                   max_tokens=4096
+                   max_tokens=8192
                )
                answer = response.choices[0].message.content
                st.session_state.aid_chat_history.append({"role": "assistant", "content": answer})
