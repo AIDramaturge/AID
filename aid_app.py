@@ -75,7 +75,7 @@ LANGUAGES = {
         "save_changes": "Save Changes",
         "analyze": "Analyze",
         "Send Follow-up Question": "Send Follow-up Question",
-        "Show QA history":  "Show QA history"
+        "Show QA history":  "Show QA history",
         "clear_all": "Clear All",
         "reset_video": "Reset Video Processing",
         "continue_prompt": "Continue. Add more questions or tasks for AID as needed.",
@@ -118,7 +118,7 @@ LANGUAGES = {
         "save_changes": "Uložiť zmeny",
         "analyze": "Analyzovať",
         "Send Follow-up Question": "Odoslať",
-        "Show QA history": "Zobraziť históriu otázok a odpovedí."
+        "Show QA history": "Zobraziť históriu otázok a odpovedí",
         "clear_all": "Vymazať všetko",
         "reset_video": "Obnoviť spracovanie videa",
         "continue_prompt": "Pokračovať. Pridajte ďalšie otázky alebo úlohy pre AID podľa potreby.",
@@ -161,7 +161,7 @@ LANGUAGES = {
   "save_changes": "Uložit změny",
   "analyze": "Analyzovat",
   "Send Follow-up Question": "Odeslat doplňující otázku",
-  "Show QA history": "Zobrazit histórii otázek a odpovědí."
+  "Show QA history": "Zobrazit histórii otázek a odpovědí",
   "clear_all": "Vymazat vše",
   "reset_video": "Resetovat zpracování videa",
   "continue_prompt": "Pokračujte. Přidejte další otázky nebo úkoly pro AID podle potřeby.",
