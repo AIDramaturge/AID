@@ -75,6 +75,7 @@ LANGUAGES = {
         "save_changes": "Save Changes",
         "analyze": "Analyze",
         "Send Follow-up Question": "Send Follow-up Question",
+        "Show QA history":  "Show QA history"
         "clear_all": "Clear All",
         "reset_video": "Reset Video Processing",
         "continue_prompt": "Continue. Add more questions or tasks for AID as needed.",
@@ -117,6 +118,7 @@ LANGUAGES = {
         "save_changes": "Uložiť zmeny",
         "analyze": "Analyzovať",
         "Send Follow-up Question": "Odoslať",
+        "Show QA history": "Zobraziť históriu otázok a odpovedí."
         "clear_all": "Vymazať všetko",
         "reset_video": "Obnoviť spracovanie videa",
         "continue_prompt": "Pokračovať. Pridajte ďalšie otázky alebo úlohy pre AID podľa potreby.",
@@ -159,6 +161,7 @@ LANGUAGES = {
   "save_changes": "Uložit změny",
   "analyze": "Analyzovat",
   "Send Follow-up Question": "Odeslat doplňující otázku",
+  "Show QA history": "Zobrazit histórii otázek a odpovědí."
   "clear_all": "Vymazat vše",
   "reset_video": "Resetovat zpracování videa",
   "continue_prompt": "Pokračujte. Přidejte další otázky nebo úkoly pro AID podle potřeby.",
@@ -652,7 +655,7 @@ if st.button(LANGUAGES[lang]["analyze"]):
                    mime="text/plain"
                )
 
-# ---------------------- DODATOČNÉ OTÁZKY ----------------------
+    # ---------------------- DODATOČNÉ OTÁZKY ----------------------
 if st.session_state.aid_analysis_output:
    st.markdown(f"### 🤖 {LANGUAGES[lang]['continue_prompt']}")
    followup = st.text_area(
@@ -665,24 +668,34 @@ if st.session_state.aid_analysis_output:
    if st.button(LANGUAGES[lang]["Send Follow-up Question"]):
        if followup.strip():
            st.session_state.aid_chat_history.append({"role": "user", "content": followup.strip()})
-           try:
-               response = client.chat.completions.create(
-                   model="gpt-4o",
-                   messages=st.session_state.aid_chat_history,
-                   temperature=0.4,
-                   max_tokens=8192
-               )
-               answer = response.choices[0].message.content
-               st.session_state.aid_chat_history.append({"role": "assistant", "content": answer})
-               st.markdown(f"### 💬 {LANGUAGES[lang]['aid_response']}")
-               st.text_area(
-                   LANGUAGES[lang]["aid_response"],
-                   value=answer,
-                   height=800,
-                   key=f"aid_response_output_{len(st.session_state.aid_chat_history)}"
-               )
-           except Exception as e:
-               st.error(f"Error: {e}")
+           with st.spinner("🧠 I'm working on the answer..."):
+               try:
+                   response = client.chat.completions.create(
+                       model="gpt-4o",
+                       messages=st.session_state.aid_chat_history,
+                       temperature=0.4,
+                       max_tokens=8192  # Prispôsobené kvôli obmedzeniu modelu
+                   )
+                   answer = response.choices[0].message.content
+                   st.session_state.aid_chat_history.append({"role": "assistant", "content": answer})
+                   st.session_state["followup_input"] = ""  # Vyprázdni textové pole
+                   st.markdown(f"### 💬 {LANGUAGES[lang]['aid_response']}")
+                   st.markdown(f"**{LANGUAGES[lang]['enter_question']}** {followup.strip()}")
+                   st.text_area(
+                       LANGUAGES[lang]["aid_response"],
+                       value=answer,
+                       height=800,
+                       key=f"aid_response_output_{len(st.session_state.aid_chat_history)}"
+                   )
+               except Exception as e:
+                   st.error(f"Error: {e}")
+
+   # Zobrazenie celej histórie otázok a odpovedí
+   if st.session_state.aid_chat_history:
+       with st.expander("🔍 Show QA history"):
+           for i, msg in enumerate(st.session_state.aid_chat_history):
+               role = "Používateľ" if msg["role"] == "user" else "AID"
+               st.markdown(f"**{role}:** {msg['content']}")
 
 # ---------------------- RESET TLAČIDLÁ ----------------------
 col1, col2 = st.columns([1, 5])

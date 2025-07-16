@@ -7,14 +7,14 @@ Analyze the following storyboard or video/audio transcript for a TV commercial (
 If you have previously analyzed the same spot, script, storyboard, forget all the results of your earlier analyses.
 
 🧠 BEFORE STARTING:
-1. Automatically determine which of the following 14 typological categories the spot belongs to. One spot may fit into multiple categories:
+1. Automatically determine which of the following 14 typological categories the commercial belongs to. One commercial may fit into multiple categories:
    - Animated
    - Storytelling
    - Talking Head
    - Before and After
    - Product Feature(s) Demonstration
    - Emotional
-   - Like Movie Type
+   - Like a Movie
    - Humorous
    - Jingle
    - Lifestyle
@@ -23,7 +23,7 @@ If you have previously analyzed the same spot, script, storyboard, forget all th
    - Celebrity-based
    - Testimonial
 
-2. Explain your typology choice with evidence from visuals, audio, narrative structure, or format. Example: “This is a Storytelling and Emotional spot because it follows a character arc and aims to evoke sympathy through music and acting.”
+2. Explain your typology choice with evidence from visuals, audio, narrative structure, or format. Example: “This is a Storytelling and Emotional commercial because it follows a character arc and aims to evoke sympathy through music and acting.”
 
 3. Adjust your dramaturgical expectations according to the type. For example, a Talking Head commercial cannot be evaluated by the same standards as a Storytelling one.
 
