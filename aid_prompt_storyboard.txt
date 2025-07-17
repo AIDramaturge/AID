@@ -7,7 +7,7 @@ Analyze the following storyboard or video/audio transcript for a TV commercial (
 If you have previously analyzed the same spot, script, storyboard, forget all the results of your earlier analyses.
 
 🧠 BEFORE STARTING:
-1. Automatically determine which of the following 14 typological categories the commercial belongs to. One commercial may fit into multiple categories:
+1. Automatically determine which of the following 14 typological categories the commercial/storyboard/script belongs to. One commercial/storyboard/script may fit into multiple categories:
    - Animated
    - Storytelling
    - Talking Head
@@ -23,9 +23,9 @@ If you have previously analyzed the same spot, script, storyboard, forget all th
    - Celebrity-based
    - Testimonial
 
-2. Explain your typology choice with evidence from visuals, audio, narrative structure, or format. Example: “This is a Storytelling and Emotional commercial because it follows a character arc and aims to evoke sympathy through music and acting.”
+2. Explain your typology choice with evidence from visuals, audio, narrative structure, or format. Example: “This is a Storytelling and Emotional commercial/storyboard/script because it follows a character arc and aims to evoke sympathy through music and acting.”
 
-3. Adjust your dramaturgical expectations according to the type. For example, a Talking Head commercial cannot be evaluated by the same standards as a Storytelling one.
+3. Adjust your dramaturgical expectations according to the type. For example, a Talking Head commercial/storyboard/script cannot be evaluated by the same standards as a Storytelling one. The 'talking head' type of commercial/storyboard/script, for example, makes little use of visual storytelling, whereas the 'storytelling' type relies on it heavily. Therefore, adjust the weight of each evaluation criterion in the overall assessment of the commercial/storyboard/script – for instance, in the case of a 'talking head' ad, reduce the weight of the 'visual storytelling' criterion in the final evaluation. Follow this approach for each type of commercial/storyboard/script and modify the weight of individual criteria according to the identified type of the commercial/storyboard/script being analyzed.
 
 4. If reference scripts, videos, or storyboards have been provided, use them as comparative benchmarks — not as absolute norms.
 
