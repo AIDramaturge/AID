@@ -388,64 +388,69 @@ elif input_type == "Advertising Concept/Script (Text)":
 
 # ---------------------- SPRACOVANIE PDF ----------------------
 elif input_type == "Advertising Storyboard PDF Format (Image + Text)":
-   st.markdown(f"### 📄 {LANGUAGES[lang]['upload_pdf']}")
-   uploaded_pdf = st.file_uploader(LANGUAGES[lang]["upload_pdf here"], type=["pdf"])
+    st.markdown(f"### 📄 {LANGUAGES[lang]['upload_pdf']}")
+    uploaded_pdf = st.file_uploader(LANGUAGES[lang]["upload_pdf"], type=["pdf"])
 
-   if uploaded_pdf is not None:
-       if not check_file_size(uploaded_pdf):
-           st.stop()
-       if "aid_storyboard_processed_text" not in st.session_state or st.session_state.get("aid_storyboard_file_name") != uploaded_pdf.name:
-           with tempfile.TemporaryDirectory() as tmpdir:
-               try:
-                   start_time = time.time()
-                   pdf_text = ""
-                   image_tasks = []
-                   MAX_IMAGES = 60
+    if uploaded_pdf is not None:
+        if not check_file_size(uploaded_pdf):
+            st.stop()
+        if "aid_storyboard_processed_text" not in st.session_state or st.session_state.get("aid_storyboard_file_name") != uploaded_pdf.name:
+            with tempfile.TemporaryDirectory() as tmpdir:
+                try:
+                    start_time = time.time()
+                    pdf_text = ""
+                    image_tasks = []
+                    MAX_IMAGES = 60
 
-                   try:
-                       with fitz.open(stream=uploaded_pdf.read(), filetype="pdf") as doc:
-                           for page_number, page in enumerate(doc):
-                               pdf_text += page.get_text()
-                               image_list = page.get_images(full=True)
-                               for img_index, img in enumerate(image_list):
-                                   if len(image_tasks) >= MAX_IMAGES:
-                                       st.warning(f"⚠️ Too many images ({len(image_list)}). Processing only the first {MAX_IMAGES}.")
-                                       break
-                                   xref = img[0]
-                                   base_image = doc.extract_image(xref)
-                                   image_bytes = base_image["image"]
-                                   image_tasks.append((image_bytes, page_number, img_index))
-                   except Exception as e:
-                       st.error(LANGUAGES[lang]["error_pdf"].format(error=e))
-                       st.stop()
+                    try:
+                        with fitz.open(stream=uploaded_pdf.read(), filetype="pdf") as doc:
+                            for page_number, page in enumerate(doc):
+                                pdf_text += page.get_text()
+                                image_list = page.get_images(full=True)
+                                for img_index, img in enumerate(image_list):
+                                    if len(image_tasks) >= MAX_IMAGES:
+                                        st.warning(f"⚠️ Too many images ({len(image_list)}). Processing only the first {MAX_IMAGES}.")
+                                        break
+                                    xref = img[0]
+                                    base_image = doc.extract_image(xref)
+                                    image_bytes = base_image["image"]
+                                    image_tasks.append((image_bytes, page_number, img_index))
+                    except Exception as e:
+                        st.error(LANGUAGES[lang]["error_pdf"].format(error=e))
+                        st.stop()
 
-                   def process_image_ocr(image_bytes, page_number, img_index):
-                       try:
-                           image = Image.open(BytesIO(image_bytes)).convert("RGB")
-                           extracted_text = extract_visual_description_with_openai(image)
-                       except Exception as e:
-                           extracted_text = f"OCR Error on Page {page_number + 1}, Image {img_index + 1} ---\n{e}"
-                       return f"\n--- OCR from Page {page_number + 1}, Image {img_index + 1} ---\n{extracted_text}"
+                    def process_image_ocr(image_bytes, page_number, img_index):
+                        try:
+                            image = Image.open(BytesIO(image_bytes)).convert("RGB")
+                            extracted_text = extract_visual_description_with_openai(image)
+                        except Exception as e:
+                            extracted_text = f"OCR Error on Page {page_number + 1}, Image {img_index + 1} ---\n{e}"
+                        return f"\n--- OCR from Page {page_number + 1}, Image {img_index + 1} ---\n{extracted_text}"
 
-                   with st.spinner(LANGUAGES[lang]["processing_images"].format(count=len(image_tasks), time=len(image_tasks) * 2)):
-                       max_workers = min(multiprocessing.cpu_count(), len(image_tasks)) or 1
-                       with ThreadPoolExecutor(max_workers=max_workers) as executor:
-                           ocr_chunks = list(executor.map(lambda args: process_image_ocr(*args), image_tasks))
+                    with st.spinner(LANGUAGES[lang]["processing_images"].format(count=len(image_tasks), time=len(image_tasks) * 2)):
+                        max_workers = min(multiprocessing.cpu_count(), len(image_tasks)) or 1
+                        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                            ocr_chunks = list(executor.map(lambda args: process_image_ocr(*args), image_tasks))
 
-                       ocr_text = "\n".join(ocr_chunks)
-                       combined_text = (pdf_text.strip() + "\n\n" + ocr_text.strip()).strip()
+                        ocr_text = "\n".join(ocr_chunks)
+                        combined_text = (pdf_text.strip() + "\n\n" + ocr_text.strip()).strip()
 
-                       st.session_state.aid_storyboard_processed_text = combined_text
-                       st.session_state.aid_storyboard_file_name = uploaded_pdf.name
-                       st.success(LANGUAGES[lang]["processing_completed"].format(time=time.time() - start_time))
-               finally:
-                   if os.path.exists(tmpdir):
-                       shutil.rmtree(tmpdir, ignore_errors=True)
-       else:
-           combined_text = st.session_state.aid_storyboard_processed_text
+                        st.session_state.aid_storyboard_processed_text = combined_text
+                        st.session_state.aid_storyboard_file_name = uploaded_pdf.name
+                        st.success(LANGUAGES[lang]["processing_completed"].format(time=time.time() - start_time))
+                        
+                        # Pridať info o úspešnom spracovaní
+                        st.info(f"✅ PDF processed successfully! **{len(image_tasks)}** images extracted and analyzed.")
+                        
+                finally:
+                    if os.path.exists(tmpdir):
+                        shutil.rmtree(tmpdir, ignore_errors=True)
+        else:
+            combined_text = st.session_state.aid_storyboard_processed_text
 
-       st.session_state.aid_user_text = combined_text
-       st.text_area(LANGUAGES[lang]["extracted_text_ocr"], value=combined_text, height=400)
+        st.session_state.aid_user_text = combined_text
+        
+        # ODSTRÁNENÉ automatické zobrazenie - teraz sa zobrazí len cez Show Script tlačidlo
 
 # ---------------------- SPRACOVANIE VIDEA ----------------------
 elif input_type == "TV Commercial (Video 10 - 150 sec)":
@@ -627,15 +632,18 @@ elif input_type == "Dramatic Text (TV, Movie, Theatre)":
        st.session_state.aid_user_text = text.strip()
 
 # ---------------------- ZOBRAZENIE A ÚPRAVA SKRIPTU ----------------------
-if st.button(LANGUAGES[lang]["show_script"]):
-   st.session_state.aid_show_script = True
-
-if st.session_state.get("aid_show_script", False):
-   edited_script = st.text_area("Script Text (editable):", value=st.session_state.aid_user_text, height=400, key="script_editor")
-   if st.button(LANGUAGES[lang]["save_changes"]):
-       st.session_state.aid_user_text = edited_script
-       st.success(LANGUAGES[lang]["success_changes_saved"])
-       st.text_area("Updated Script:", value=st.session_state.aid_user_text, height=400, key="updated_script")
+if st.session_state.aid_user_text:  # Zobraz len ak existuje text
+    with st.expander("📝 Show/Edit Script", expanded=False):
+        edited_script = st.text_area(
+            "Script Text (editable):", 
+            value=st.session_state.aid_user_text, 
+            height=400, 
+            key="script_editor_expander"
+        )
+        
+        if st.button("💾 Save Changes", key="save_in_expander"):
+            st.session_state.aid_user_text = edited_script
+            st.success(LANGUAGES[lang]["success_changes_saved"])
 
 # ---------------------- SPUSTENIE ANALÝZY ----------------------
 if st.button(LANGUAGES[lang]["analyze"]):
@@ -646,30 +654,36 @@ if st.button(LANGUAGES[lang]["analyze"]):
             result = analyze_text(input_type, st.session_state.aid_user_text)
             st.session_state.aid_analysis_output = result
             st.session_state.aid_chat_history.append({"role": "assistant", "content": result})
-
+            
+            # Hlavička
             st.markdown(f"### 🔍 {LANGUAGES[lang]['analysis_result']}")
-
-            # Textová plocha
-            st.text_area(
-                label=LANGUAGES[lang]["analysis_result"],
-                value=result,
-                height=400,
-                key="aid_analysis_text_copyable"
-            )
-
-            # JavaScript tlačidlo na kopírovanie do schránky
-            components.html(f"""
-                <textarea id="copyTarget" style="position:absolute; left:-9999px;">{result}</textarea>
-                <button onclick="navigator.clipboard.writeText(document.getElementById('copyTarget').value)">📋 Copy Analysis to Clipboard</button>
-            """, height=40)
-
-            # Voliteľné: stiahnutie ako súbor
-            st.download_button(
-                label="⬇️ Download Analysis as TXT",
-                data=result,
-                file_name="aid_analysis.txt",
-                mime="text/plain"
-            )
+            
+            # Container pre analýzu s rámčekom
+            with st.container():
+                # Zobraz analýzu ako markdown v expanderi
+                with st.expander("📊 Full Analysis", expanded=True):
+                    st.markdown(result)
+                
+                # Tlačidlá v stĺpcoch
+                col1, col2, col3 = st.columns([1, 1, 2])
+                
+                with col1:
+                    st.download_button(
+                        label="📋 Copy to Clipboard",
+                        data=result,
+                        file_name="analysis.txt",
+                        mime="text/plain",
+                        help="Download as TXT file"
+                    )
+                
+                with col2:
+                    st.download_button(
+                        label="📄 Save as PDF",
+                        data=result,
+                        file_name="aid_analysis.pdf",
+                        mime="application/pdf",
+                        help="Coming soon"
+                    )
 
     # ---------------------- DODATOČNÉ OTÁZKY ----------------------
 if st.session_state.aid_analysis_output:
