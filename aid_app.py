@@ -17,6 +17,7 @@ import yt_dlp
 from concurrent.futures import ThreadPoolExecutor
 import multiprocessing
 import re
+import streamlit.components.v1 as components
 
 # Konfigurácia stránky MUSÍ byť prvá
 st.set_page_config(page_title="AI Dramaturge", layout="wide")
@@ -47,7 +48,7 @@ if st.session_state.get("clear_all_triggered", False):
 LANGUAGES = {
     "en": {
         "title": "AID - Artificial Intelligence Dramaturge",
-        "select_language": "Select Language",
+        "select_language": "Select App Language",
         "analysis_type_label": "This is an AI-powered dramaturgical analysis tool using the principles of Anglo-American dramaturgy. What are you analyzing?",
         "upload_images": "Upload storyboard image(s):",
         "upload_images here": "Upload images here",
@@ -56,7 +57,7 @@ LANGUAGES = {
         "upload_text file": "Upload text file",
         "upload_pdf": "Upload your storyboard as a PDF (with text and images, any language)",
         "upload_pdf here": "Upload PDF file",
-        "upload_video": "Upload a video file or paste a video URL (e.g., YouTube, vimeo). AID uderstands multiple languages.",
+        "upload_video": "Upload a video file or paste a video URL (e.g., YouTube, Vimeo). AID uderstands multiple languages.",
         "only upload_video": "Upload a video file",
         "video_url": "Paste a video URL to analyze:",
         "video_warning": "Warning: In certain cases — such as local cultural references, minimalist acting, metaphor-heavy scenes, limited intelligible lyrics, or the presence of celebrities (which AID cannot recognize) — the transcription and interpretation of the video into a script may be inaccurate. If the resulting synopsis seems incorrect after analysis, please manually enter the correct one into the text field (labeled \"Continue...\") and request a new analysis. To do this, start your prompt with: `Analyze again. Correct synopsis:....` You may write synopsis in any language. 🧠 Remember: AID functions as a dramaturge, not a competition judge. It evaluates narrative principles and structural elements based on the provided content. As such, its assessments may differ — sometimes significantly — from those of human juries. It is also not immune to error. To reduce such errors, you can repeat the analysis several times and compare the results — or write and manually submit a deep, detailed synopsis.",
@@ -638,64 +639,91 @@ if st.session_state.get("aid_show_script", False):
 
 # ---------------------- SPUSTENIE ANALÝZY ----------------------
 if st.button(LANGUAGES[lang]["analyze"]):
-   if not st.session_state.aid_user_text.strip():
-       st.warning(LANGUAGES[lang]["error_no_content"])
-   else:
-       with st.spinner("Analyzing, please wait..."):
-           result = analyze_text(input_type, st.session_state.aid_user_text)
-           st.session_state.aid_analysis_output = result
-           st.session_state.aid_chat_history.append({"role": "assistant", "content": result})
-           st.markdown(f"### 🔍 {LANGUAGES[lang]['analysis_result']}")
-           st.text_area(LANGUAGES[lang]["analysis_result"], value=result, height=400)
-           if result:
-               st.download_button(
-                   label="📋 Copy Analysis to Clipboard",
-                   data=st.session_state.aid_analysis_output,
-                   file_name="analysis.txt",
-                   mime="text/plain"
-               )
+    if not st.session_state.aid_user_text.strip():
+        st.warning(LANGUAGES[lang]["error_no_content"])
+    else:
+        with st.spinner("Analyzing, please wait..."):
+            result = analyze_text(input_type, st.session_state.aid_user_text)
+            st.session_state.aid_analysis_output = result
+            st.session_state.aid_chat_history.append({"role": "assistant", "content": result})
+
+            st.markdown(f"### 🔍 {LANGUAGES[lang]['analysis_result']}")
+
+            # Textová plocha
+            st.text_area(
+                label=LANGUAGES[lang]["analysis_result"],
+                value=result,
+                height=400,
+                key="aid_analysis_text_copyable"
+            )
+
+            # JavaScript tlačidlo na kopírovanie do schránky
+            components.html(f"""
+                <textarea id="copyTarget" style="position:absolute; left:-9999px;">{result}</textarea>
+                <button onclick="navigator.clipboard.writeText(document.getElementById('copyTarget').value)">📋 Copy Analysis to Clipboard</button>
+            """, height=40)
+
+            # Voliteľné: stiahnutie ako súbor
+            st.download_button(
+                label="⬇️ Download Analysis as TXT",
+                data=result,
+                file_name="aid_analysis.txt",
+                mime="text/plain"
+            )
 
     # ---------------------- DODATOČNÉ OTÁZKY ----------------------
 if st.session_state.aid_analysis_output:
-   st.markdown(f"### 🤖 {LANGUAGES[lang]['continue_prompt']}")
-   followup = st.text_area(
-       LANGUAGES[lang]["enter_question"],
-       height=80,
-       key="followup_input",
-       placeholder=LANGUAGES[lang]["enter_question"]
-   )
-
-   if st.button(LANGUAGES[lang]["Send Follow-up Question"]):
-       if followup.strip():
-           st.session_state.aid_chat_history.append({"role": "user", "content": followup.strip()})
-           with st.spinner("🧠 I'm working on the answer..."):
-               try:
-                   response = client.chat.completions.create(
-                       model="gpt-4o",
-                       messages=st.session_state.aid_chat_history,
-                       temperature=0.4,
-                       max_tokens=8192  # Prispôsobené kvôli obmedzeniu modelu
-                   )
-                   answer = response.choices[0].message.content
-                   st.session_state.aid_chat_history.append({"role": "assistant", "content": answer})
-                   st.session_state["followup_input"] = ""  # Vyprázdni textové pole
-                   st.markdown(f"### 💬 {LANGUAGES[lang]['aid_response']}")
-                   st.markdown(f"**{LANGUAGES[lang]['enter_question']}** {followup.strip()}")
-                   st.text_area(
-                       LANGUAGES[lang]["aid_response"],
-                       value=answer,
-                       height=800,
-                       key=f"aid_response_output_{len(st.session_state.aid_chat_history)}"
-                   )
-               except Exception as e:
-                   st.error(f"Error: {e}")
-
-   # Zobrazenie celej histórie otázok a odpovedí
-   if st.session_state.aid_chat_history:
-       with st.expander("🔍 Show QA history"):
-           for i, msg in enumerate(st.session_state.aid_chat_history):
-               role = "Používateľ" if msg["role"] == "user" else "AID"
-               st.markdown(f"**{role}:** {msg['content']}")
+    st.markdown(f"### 🤖 {LANGUAGES[lang]['continue_prompt']}")
+    
+    # Placeholder pre odpovede
+    response_placeholder = st.empty()
+    
+    # Form s clear_on_submit
+    with st.form("followup_form", clear_on_submit=True):
+        followup = st.text_area(
+            LANGUAGES[lang]["enter_question"],
+            height=80,
+            placeholder=LANGUAGES[lang]["enter_question"]
+        )
+        submitted = st.form_submit_button("Send Follow-up Question")
+    
+    if submitted and followup.strip():
+        with st.spinner("🧠 I'm working on the answer..."):
+            try:
+                # API volanie
+                st.session_state.aid_chat_history.append({"role": "user", "content": followup.strip()})
+                response = client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=st.session_state.aid_chat_history,
+                    temperature=0.4,
+                    max_tokens=8192
+                )
+                answer = response.choices[0].message.content
+                st.session_state.aid_chat_history.append({"role": "assistant", "content": answer})
+                
+                # Zobraz v placeholder
+                with response_placeholder.container():
+                    st.markdown(f"### 💬 {LANGUAGES[lang]['aid_response']}")
+    
+                     # Otázka
+                    st.info(f"**Your question/task:** {followup}")
+    
+                    # Odpoveď
+                    st.markdown("**Answer:**")
+                    st.markdown(answer)
+    
+                    # Tlačidlo na kopírovanie
+                    col1, col2, col3 = st.columns([1, 1, 3])
+                    with col1:
+                        st.download_button(
+                            label="📋 Copy Answer",
+                            data=answer,
+                            file_name="answer.txt",
+                            mime="text/plain"
+        )
+                    
+            except Exception as e:
+                st.error(f"Error: {e}")
 
 # ---------------------- RESET TLAČIDLÁ ----------------------
 col1, col2 = st.columns([1, 5])
