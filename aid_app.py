@@ -22,6 +22,23 @@ import streamlit.components.v1 as components
 # Konfigurácia stránky MUSÍ byť prvá
 st.set_page_config(page_title="AI Dramaturge", layout="wide")
 
+# ---------------------- AUTENTIFIKÁCIA ----------------------
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+
+if not st.session_state.authenticated:
+    st.title("🔐 AID – Access Protected")
+    password = st.text_input("Enter password", type="password")
+    if password == st.secrets["auth"]["password"]:
+        st.session_state.authenticated = True
+        st.success("Access granted.")
+        st.experimental_rerun()
+    elif password:
+        st.error("Incorrect password.")
+    st.stop()  # Zastaví vykresľovanie zvyšku aplikácie, kým nie je overený
+
+# ------------------------------------------------------------
+
 # Flag pre clear
 if "clear_all_triggered" not in st.session_state:
     st.session_state.clear_all_triggered = False
@@ -449,8 +466,6 @@ elif input_type == "Advertising Storyboard PDF Format (Image + Text)":
             combined_text = st.session_state.aid_storyboard_processed_text
 
         st.session_state.aid_user_text = combined_text
-        
-        # ODSTRÁNENÉ automatické zobrazenie - teraz sa zobrazí len cez Show Script tlačidlo
 
 # ---------------------- SPRACOVANIE VIDEA ----------------------
 elif input_type == "TV Commercial (Video 10 - 150 sec)":
