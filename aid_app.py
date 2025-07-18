@@ -32,7 +32,7 @@ if not st.session_state.authenticated:
     if password == st.secrets["auth"]["password"]:
         st.session_state.authenticated = True
         st.success("Access granted.")
-        st.experimental_rerun()
+        st.rerun()
     elif password:
         st.error("Incorrect password.")
     st.stop()  # Zastaví vykresľovanie zvyšku aplikácie, kým nie je overený
