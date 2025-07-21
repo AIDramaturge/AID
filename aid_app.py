@@ -18,6 +18,8 @@ from concurrent.futures import ThreadPoolExecutor
 import multiprocessing
 import re
 import streamlit.components.v1 as components
+from io import BytesIO
+import docx 
 
 # Konfigurácia stránky MUSÍ byť prvá
 st.set_page_config(page_title="AI Dramaturge", layout="wide")
@@ -632,19 +634,26 @@ elif input_type == "Dramatic Text (TV, Movie, Theatre)":
    
    uploaded_play = st.file_uploader(LANGUAGES[lang]["upload_dramatic_text"], type=["txt", "docx", "pdf"])
    if uploaded_play is not None:
-       if not check_file_size(uploaded_play):
-           st.stop()
-       if uploaded_play.name.endswith(".txt"):
-           text = uploaded_play.read().decode("utf-8")
-       elif uploaded_play.name.endswith(".docx"):
-           text = docx2txt.process(uploaded_play)
-       elif uploaded_play.name.endswith(".pdf"):
-           with fitz.open(stream=uploaded_play.read(), filetype="pdf") as doc:
-               text = "".join(page.get_text() for page in doc)
-       else:
-           st.error(LANGUAGES[lang]["error_unsupported_format"])
-           text = ""
-       st.session_state.aid_user_text = text.strip()
+    if not check_file_size(uploaded_play):
+        st.stop()
+
+    if uploaded_play.name.endswith(".txt"):
+        text = uploaded_play.read().decode("utf-8", errors="replace")
+
+    elif uploaded_play.name.endswith(".docx"):
+        file_stream = BytesIO(uploaded_play.read())
+        doc = docx.Document(file_stream)
+        text = "\n".join([para.text for para in doc.paragraphs])
+
+    elif uploaded_play.name.endswith(".pdf"):
+        with fitz.open(stream=uploaded_play.read(), filetype="pdf") as doc:
+            text = "".join(page.get_text() for page in doc)
+
+    else:
+        st.error(LANGUAGES[lang]["error_unsupported_format"])
+        text = ""
+
+    st.session_state.aid_user_text = text.strip()
 
 # ---------------------- ZOBRAZENIE A ÚPRAVA SKRIPTU ----------------------
 if st.session_state.aid_user_text:  # Zobraz len ak existuje text

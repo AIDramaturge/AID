@@ -1,7 +1,7 @@
 streamlit
 openai>=1.0.0
 python-dotenv
-opencv-python-headless==4.5.5.64
+moviepy
 Pillow
 pytesseract
 PyMuPDF
@@ -9,4 +9,6 @@ imageio[ffmpeg]
 docx2txt
 yt-dlp
 scenedetect
-# rebuild
+numpy==1.24.3
+python-docx
+PyMuPDF
