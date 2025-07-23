@@ -258,29 +258,29 @@ def compress_image(image: Image.Image, max_size=(1024, 1024)) -> Image.Image:
    return image
 
 def extract_visual_description_with_openai(image: Image.Image) -> str:
-   """Extracts text and visual description from an image using OpenAI's GPT-4o model."""
-   image = compress_image(image)
-   buffered = BytesIO()
-   image.save(buffered, format="JPEG", quality=85)
-   img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+    """Extracts text and visual description from an image using OpenAI's GPT-4o model."""
+    image = compress_image(image)
+    buffered = BytesIO()
+    image.save(buffered, format="JPEG", quality=85)
+    img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
 
-   if len(img_str) > 5_000_000:
-       return "Error: Image is too large after encoding."
+    if len(img_str) > 5_000_000:
+        return "Error: Image is too large after encoding."
 
-   try:
-       response = client.chat.completions.create(
-           model="gpt-4o",
-           messages=[
-               {"role": "user", "content": [
-                   {"type": "text", "text": "First, extract all readable text from the image (OCR). Then, describe the image in detail as if you were writing a scene description for a storyboard. Focus on people, actions, emotions, setting, objects, and atmosphere."},
-                   {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{img_str}"}}
-               ]}
-           ],
-           max_tokens=1024
-       )
-       return response.choices[0].message.content.strip()
-   except Exception as e:
-       return f"OCR Error: {e}"
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "user", "content": [
+                    {"type": "text", "text": "Extract any readable text (OCR) and provide a BRIEF 2-3 sentence description of the key visual elements. Be concise."},
+                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{img_str}"}}
+                ]}
+            ],
+            max_tokens=200  # Znížené z 1024
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        return f"OCR Error: {e}"
 
 # ---------------------- UI HLAVICKA ----------------------
 # Výber jazyka
@@ -422,18 +422,33 @@ elif input_type == "Advertising Storyboard PDF Format (Image + Text)":
                     MAX_IMAGES = 100
 
                     try:
-                        with fitz.open(stream=uploaded_pdf.read(), filetype="pdf") as doc:
+                        # Načítaj PDF do pamäte
+                        pdf_bytes = uploaded_pdf.read()
+                        
+                        # Prvý prechod - spočítaj obrázky
+                        with fitz.open(stream=pdf_bytes, filetype="pdf") as doc:
+                            total_images_in_pdf = 0
+                            for page in doc:
+                                total_images_in_pdf += len(page.get_images(full=True))
+                            
+                            if total_images_in_pdf > MAX_IMAGES:
+                                st.warning(f"⚠️ Found {total_images_in_pdf} images in PDF. Processing only the first {MAX_IMAGES}.")
+                        
+                        # Druhý prechod - spracuj obsah
+                        with fitz.open(stream=pdf_bytes, filetype="pdf") as doc:
                             for page_number, page in enumerate(doc):
                                 pdf_text += page.get_text()
                                 image_list = page.get_images(full=True)
                                 for img_index, img in enumerate(image_list):
                                     if len(image_tasks) >= MAX_IMAGES:
-                                        st.warning(f"⚠️ Too many images ({len(image_list)}). Processing only the first {MAX_IMAGES}.")
                                         break
                                     xref = img[0]
                                     base_image = doc.extract_image(xref)
                                     image_bytes = base_image["image"]
                                     image_tasks.append((image_bytes, page_number, img_index))
+                                if len(image_tasks) >= MAX_IMAGES:
+                                    break
+                                    
                     except Exception as e:
                         st.error(LANGUAGES[lang]["error_pdf"].format(error=e))
                         st.stop()
