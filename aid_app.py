@@ -419,7 +419,7 @@ elif input_type == "Advertising Storyboard PDF Format (Image + Text)":
                     start_time = time.time()
                     pdf_text = ""
                     image_tasks = []
-                    MAX_IMAGES = 60
+                    MAX_IMAGES = 100
 
                     try:
                         with fitz.open(stream=uploaded_pdf.read(), filetype="pdf") as doc:
