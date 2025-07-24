@@ -707,21 +707,39 @@ if st.button(LANGUAGES[lang]["analyze"]):
                 col1, col2, col3 = st.columns([1, 1, 2])
                 
                 with col1:
-                    st.download_button(
-                        label="📋 Copy to Clipboard",
-                        data=result,
-                        file_name="analysis.txt",
-                        mime="text/plain",
-                        help="Download as TXT file"
+                    # Vytvorte jedinečné ID pre text
+                    text_id = f"text_to_copy_{hash(result)}"
+    
+                    # JavaScript pre kopírovanie
+                    components.html(
+                        f"""
+                        <textarea id="{text_id}" style="position: absolute; left: -9999px;">{result}</textarea>
+                        <button onclick="
+                            var copyText = document.getElementById('{text_id}');
+                            copyText.select();
+                            copyText.setSelectionRange(0, 99999);
+                            navigator.clipboard.writeText(copyText.value);
+                            this.innerText = '✓ Copied!';
+                            setTimeout(() => this.innerText = '📋 Copy to Clipboard', 2000);
+                        " style="
+                            padding: 0.25rem 0.75rem;
+                            background-color: #FF4B4B;
+                            color: white;
+                            border: none;
+                            border-radius: 0.25rem;
+                            cursor: pointer;
+                            font-size: 14px;
+                        ">📋 Copy to Clipboard</button>
+                        """,
+                        height=50
                     )
                 
                 with col2:
                     st.download_button(
-                        label="📄 Save as PDF",
+                        label="💾 Save as TXT",
                         data=result,
-                        file_name="aid_analysis.pdf",
-                        mime="application/pdf",
-                        help="Coming soon"
+                        file_name="aid_analysis.txt",
+                        mime="text/plain"
                     )
 
     # ---------------------- DODATOČNÉ OTÁZKY ----------------------
@@ -781,17 +799,44 @@ if st.session_state.aid_analysis_output:
 # ---------------------- RESET TLAČIDLÁ ----------------------
 col1, col2 = st.columns([1, 5])
 with col1:
-   if st.button(f"❌ {LANGUAGES[lang]['clear_all']}", key="clear_all_button"):
-       st.session_state.clear_all_triggered = True
-       st.session_state.aid_image_processing_done = False
-       st.session_state.aid_image_processing_key += 1
-       st.rerun()
+    if st.button(f"❌ {LANGUAGES[lang]['clear_all']}", key="clear_all_button"):
+        # Zoznam kľúčov na vymazanie
+        keys_to_clear = [
+            "aid_user_text", 
+            "aid_analysis_output", 
+            "aid_video_processed",
+            "aid_chat_history", 
+            "aid_show_script", 
+            "aid_uploaded_video",
+            "aid_script_created", 
+            "aid_storyboard_processed_text",
+            "aid_storyboard_file_name", 
+            "aid_image_processing_done",
+            "clear_all_triggered",
+            "current_input_type"
+        ]
+        
+        # Vymaž len tieto kľúče
+        for key in keys_to_clear:
+            if key in st.session_state:
+                del st.session_state[key]
+        
+        # Inkrementuj processing key
+        st.session_state.aid_image_processing_key = st.session_state.get("aid_image_processing_key", 0) + 1
+        
+        # Re-inicializuj základné hodnoty
+        init_session_state()
+        
+        # Clear cache
+        st.cache_data.clear()
+        
+        st.rerun()
 
 with col2:
-   if input_type == "TV Commercial (Video 10 - 150 sec)" and st.button(LANGUAGES[lang]["reset_video"]):
-       st.session_state.aid_user_text = ""
-       st.session_state.aid_analysis_output = ""
-       st.session_state.aid_video_processed = False
-       st.session_state.aid_uploaded_video = None
-       st.session_state.aid_script_created = False
-       st.rerun()
+    if input_type == "TV Commercial (Video 10 - 150 sec)" and st.button(LANGUAGES[lang]["reset_video"]):
+        st.session_state.aid_user_text = ""
+        st.session_state.aid_analysis_output = ""
+        st.session_state.aid_video_processed = False
+        st.session_state.aid_uploaded_video = None
+        st.session_state.aid_script_created = False
+        st.rerun()
